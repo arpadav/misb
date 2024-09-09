@@ -67,8 +67,11 @@ pub const SENSOR_TRUE_ALT_OFFSET_P2: f32 = 900.0;
 /// use tinyklv::prelude::*;
 /// use misb::misb0601::ops::to_precision_timestamp;
 /// let mut val1: &[u8] = &(0x0004_59F4_A6AA_4AA8 as u64).to_be_bytes();
+/// let mut val2: &[u8] = &(0x0003_8244_30F6_CE40 as u64).to_be_bytes();
 /// let result1 = to_precision_timestamp(&mut val1);
+/// let result2 = to_precision_timestamp(&mut val2);
 /// assert_eq!(result1, Ok(chrono::Utc.with_ymd_and_hms(2008, 10, 24, 0, 13, 29).unwrap() + chrono::Duration::milliseconds(913)));
+/// assert_eq!(result2, Ok(chrono::Utc.with_ymd_and_hms(2001,  4, 19, 4, 25, 21).unwrap()));
 /// ```
 pub fn to_precision_timestamp(input: &mut &[u8]) -> winnow::PResult<chrono::DateTime<chrono::Utc>> {
     let checkpoint = input.checkpoint();
@@ -77,14 +80,13 @@ pub fn to_precision_timestamp(input: &mut &[u8]) -> winnow::PResult<chrono::Date
     // time in seconds, time in nanoseconds
     let (ts, tns) = (ts / 1_000_000, (ts % 1_000_000) * 1_000);
     // convert to UTC
-    match chrono::Utc.timestamp_opt(ts as i64, tns as u32) {
-        chrono::LocalResult::Single(dt) => Ok(dt),
-        chrono::LocalResult::None => Err(tinyklv::err!().add_context(
+    match chrono::DateTime::from_timestamp(ts as i64, tns as u32) {
+        Some(dt) => Ok(dt),
+        None => Err(tinyklv::err!().add_context(
             input,
             &checkpoint,
             winnow::error::StrContext::Label("Invalid timestamp")
         )),
-        chrono::LocalResult::Ambiguous(_, _) => Err(tinyklv::err!()),
     }
 }
 
@@ -100,8 +102,11 @@ pub fn to_precision_timestamp(input: &mut &[u8]) -> winnow::PResult<chrono::Date
 /// use tinyklv::prelude::*;
 /// use misb::misb0601::ops::from_precision_timestamp;
 /// let val1 = chrono::Utc.with_ymd_and_hms(2008, 10, 24, 0, 13, 29).unwrap() + chrono::Duration::milliseconds(913);
+/// let val2 = chrono::Utc.with_ymd_and_hms(2001,  4, 19, 4, 25, 21).unwrap();
 /// let result1 = from_precision_timestamp(val1);
-/// assert_eq!(result1, 0x0004_59F4_A6AA_4AA8);
+/// let result2 = from_precision_timestamp(val2);
+/// assert_eq!(result1, [0x00, 0x04, 0x59, 0xF4, 0xA6, 0xAA, 0x4A, 0xA8]);
+/// assert_eq!(result2, [0x00, 0x03, 0x82, 0x44, 0x30, 0xF6, 0xCE, 0x40]);
 /// ```
 pub const fn from_precision_timestamp(input: chrono::DateTime<chrono::Utc>) -> [u8; 8] {
     let seconds = input.timestamp() as u64; // seconds since epoch

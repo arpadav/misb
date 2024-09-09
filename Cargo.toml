@@ -1,6 +1,6 @@
 [package]
 name = "misb"
-version = "0.1.0"
+version = "0.0.1-alpha"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
 description = ""
@@ -17,6 +17,7 @@ rand = "0.8"
 chrono = "0.4"
 winnow = "0.6"
 thisenum = "0.2"
+num-traits = "0.2"
 tinyklv = { version = "0.0.1-alpha.1", path = "../tinyklv", features = ["full"] }
 
 [features]

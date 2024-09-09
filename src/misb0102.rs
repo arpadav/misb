@@ -27,8 +27,12 @@ use tinyklv::prelude::*;
 /// 
 /// MISB Standard 0102
 /// 
+/// ***Note that each arm has a Universal Locator (UL) corresponding to it, which
+/// is not implemented in this struct. This struct's implementation is only for
+/// MISB ST 0102 as a local set.***
+/// 
 /// For more information, see [Motion Imagery Standards Board (MISB)](https://nsgreg.nga.mil/misb.jsp)
-pub struct Misb0102LocalSet {
+pub struct Misb0102 {
     #[klv(key = 0x01, dec = SecurityClassification::decode)]
     /// (Mandatory) The Security Classification metadata element represents 
     /// the overall security classification of the Motion Imagery Data 
@@ -173,7 +177,7 @@ pub struct Misb0102LocalSet {
     /// As ISO 3166 is updated by dated circulars, not by version revision, the
     /// ISO 8601 YYYY-MM-DD formatted date is used.
     /// 
-    /// See [`Misb0102LocalSet::country_coding_method`]
+    /// See [`Misb0102::country_coding_method`]
     pub country_coding_method_version_date: chrono::NaiveDate,
 
     #[klv(key = 0x18, dyn = true, dec = tinyklv::as_date!(
@@ -186,7 +190,7 @@ pub struct Misb0102LocalSet {
     /// ISO 3166 is updated by dated circulars, not by version revision, the ISO 8601
     /// YYYY-MM-DD formatted date is used.
     /// 
-    /// See [`Misb0102LocalSet::object_country_coding_method`]
+    /// See [`Misb0102::object_country_coding_method`]
     pub object_country_coding_method_version_date: chrono::NaiveDate,
 }
 
@@ -194,7 +198,7 @@ pub struct Misb0102LocalSet {
 #[armtype(u8)]
 /// MISB Standard 0102 Security Classification
 /// 
-/// See [`Misb0102LocalSet::security_classification`]
+/// See [`Misb0102::security_classification`]
 pub enum SecurityClassification {
     #[value = 1]
     Unclassified,
@@ -241,7 +245,7 @@ impl std::string::ToString for SecurityClassification {
 #[armtype(u8)]
 /// MISB Standard 0102 Country Coding Method
 /// 
-/// See [`Misb0102LocalSet::country_coding_method`]
+/// See [`Misb0102::country_coding_method`]
 pub enum CountryCodingMethod {
     #[value = 0x01]
     Iso3166TwoLetter,
@@ -276,7 +280,7 @@ pub enum CountryCodingMethod {
 }
 /// [`CountryCodingMethod`] implementation
 impl CountryCodingMethod {
-    /// Decodes the tag 0x02 of [`Misb0102LocalSet`], where some values
+    /// Decodes the tag 0x02 of [`Misb0102`], where some values
     /// are omitted
     pub(crate) fn decode_tag_02(input: &mut &[u8]) -> winnow::PResult<Self> {
         match CountryCodingMethod::try_from(
@@ -290,7 +294,7 @@ impl CountryCodingMethod {
             Err(_) => Err(tinyklv::err!()),
         }
     }
-    /// Decodes the tag 0x0C of [`Misb0102LocalSet`], where some values
+    /// Decodes the tag 0x0C of [`Misb0102`], where some values
     /// are omitted
     pub(crate) fn decode_tag_0c(input: &mut &[u8]) -> winnow::PResult<Self> {
         match CountryCodingMethod::try_from(
@@ -321,16 +325,3 @@ impl tinyklv::prelude::Encode<Vec<u8>> for CountryCodingMethod {
         return vec![*self.value()]
     }
 }
-
-// mod test {
-//     use super::Misb0102LocalSet;
-//     use tinyklv::prelude::*;
-
-
-//     #[test]
-//     fn test() {
-//         let mut input: &[u8] = &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18];
-//         let input = &mut input;
-//         Misb0102LocalSet::decode(input);
-//     }
-// }

@@ -552,13 +552,13 @@ pub struct Misb0601 {
     #[cfg(any(
         feature = "misb0601-19",
     ))]
-    #[klv(key = 0x30, dec = crate::misb0102::Misb0102LocalSet::decode)]
-    /// (Optional) MISB ST 0102 local let Security Metadata items
+    #[klv(key = 0x30, dec = crate::misb0102::Misb0102::decode)]
+    /// (Optional) MISB ST 0102 Local Set Security Metadata items
     /// 
     /// Units: None
     /// 
     /// Resolution: N/A
-    pub security_local_set: Option<crate::misb0102::Misb0102LocalSet>,
+    pub security_local_set: Option<crate::misb0102::Misb0102>,
 
     #[cfg(any(
         feature = "misb0601-19",
