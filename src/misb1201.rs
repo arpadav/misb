@@ -342,7 +342,6 @@ impl SpecialValue {
 
 
 mod test {
-    use super::*;
     use rand::Rng;
     use std::time::{
         Instant,

@@ -185,23 +185,23 @@ pub struct Misb0903 {
     /// Units: None
     pub vmti_source_sensor: Option<String>,
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x0B)]
-    /// (Assumed Optional) Horizontal field of view of imaging sensor input
-    /// to VMTI process.
-    /// 
-    /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
-    /// the source input. ST 0903 requires Item 11 in two cases:
-    /// 
-    /// 1) standalone-VMTI, or
-    /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
-    /// 
-    /// Otherwise, the parent (e.g., ST 0601 LS Item 16) provides the HFOV value.
-    /// 
-    /// Valid Values: The set of real numbers from 0 to 180 inclusive.
-    /// 
-    /// Units: Degrees (°)
-    pub vmti_hfov: Option<f32>
+//     #[cfg(any(
+//         feature = "misb0903-6",
+//     ))]
+//     #[klv(key = 0x0B)]
+//     /// (Assumed Optional) Horizontal field of view of imaging sensor input
+//     /// to VMTI process.
+//     /// 
+//     /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
+//     /// the source input. ST 0903 requires Item 11 in two cases:
+//     /// 
+//     /// 1) standalone-VMTI, or
+//     /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
+//     /// 
+//     /// Otherwise, the parent (e.g., ST 0601 LS Item 16) provides the HFOV value.
+//     /// 
+//     /// Valid Values: The set of real numbers from 0 to 180 inclusive.
+//     /// 
+//     /// Units: Degrees (°)
+//     pub vmti_hfov: Option<f32>
 }

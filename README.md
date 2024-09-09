@@ -5,6 +5,8 @@
 <!-- [![Latest Release](https://img.shields.io/github/v/release/arpadav/misb)](https://github.com/arpadav/misb) -->
 <!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/misb/badge.svg?branch=main)](https://coveralls.io/github/arpadav/misb?branch=main) -->
 
+## ***THIS CRATE IS CURRENTLY UNDER ACTIVE DEVELOPMENT. THIS IS ONLY MEANT FOR CRATE RESERVATION. DO NOT USE WHILE VERSION IS x.x.x-alpha***
+
 <p align="center">
   <img src="https://nsgreg.nga.mil/images/nsg_logo.png" alt="NGA" style="width: 125px; height: auto; display: inline-block; margin: 0 10px;">
   <img src="https://gwg.nga.mil/generated/assets/files/newgwglogosmall-1920px.webp" alt="GWG" style="width: 215px; height: auto; display: inline-block; margin: 0 10px;">
@@ -18,13 +20,16 @@
 
 * [MISB 0102 - Security Metadata Universal and Local Sets for Motion Imagery Data](./src/misb0102.rs)
   * Versions: v12
-  * Usage: `--features misb0102-latest`, or `--features misb0102-12`
+  * Feature: `latest` | `misb0102-latest` | `misb0102-12`
 * [MISB 0601 - UAS Datalink Local Set](./src/misb0601/mod.rs)
   * Versions: v19
-  * Usage: `--features misb0601-latest`, or `--features misb0601-19`
+  * Feature: `latest` | `misb0601-latest` | `misb0601-19`
 * [MISB 0903 - Video Moving Target Indicator Metadata](./src/misb0903/mod.rs)
   * Versions: v6
-  * Usage: `--features misb0903-latest`, or `--features misb0903-6`
+  * Feature: `latest` | `misb0903-latest` | `misb0903-6`
+* [MISB 1201 - Floating Point to Integer Mapping](./src/misb1201.rs)
+  * Versions: v5
+  * Feature: `latest` | `misb1201-latest` | `misb1201-5`
 
 ## Features
 

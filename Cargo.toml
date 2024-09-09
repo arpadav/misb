@@ -3,12 +3,12 @@ name = "misb"
 version = "0.0.1-alpha"
 authors = ["Arpad Voros <arpadav@gmail.com>"]
 license = "MIT"
-description = ""
+description = "MISB Standard Implementation"
 repository = "https://github.com/arpadav/misb"
 documentation = "https://docs.rs/misb"
 readme = "README.md"
-# keywords = ["enum", "const", "literals", "macro", "parsing"]
-# categories = ["parsing", "memory-management"]
+keywords = ["misb", "klv", "uas", "parsing"]
+categories = ["parser-implementations", "parsing", "encoding"]
 edition = "2021"
 publish = false
 
