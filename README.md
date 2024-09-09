@@ -6,8 +6,9 @@
 <!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/misb/badge.svg?branch=main)](https://coveralls.io/github/arpadav/misb?branch=main) -->
 
 <p align="center">
-  <img src="https://nsgreg.nga.mil/images/nsg_logo.png" alt="NGA" style="width: 100px; height: auto; display: inline-block; margin: 0 10px;">
-  <img src="https://gwg.nga.mil/generated/assets/files/newgwglogosmall-1920px.webp" alt="GWG" style="width: 175px; height: auto; display: inline-block; margin: 0 10px;">
+  <img src="https://nsgreg.nga.mil/images/nsg_logo.png" alt="NGA" style="width: 125px; height: auto; display: inline-block; margin: 0 10px;">
+  <img src="https://gwg.nga.mil/generated/assets/files/newgwglogosmall-1920px.webp" alt="GWG" style="width: 215px; height: auto; display: inline-block; margin: 0 10px;">
+  <img src="https://nsgreg.nga.mil/images/nga_logo.png" alt="NGA" style="width: 125px; height: auto; display: inline-block; margin: 0 10px;">
 </p>
 
 * Documentation: [https://nsgreg.nga.mil/misb.jsp](nsgreg.nga.mil/misb.jsp)
