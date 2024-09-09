@@ -5,10 +5,10 @@
 <!-- [![Latest Release](https://img.shields.io/github/v/release/arpadav/misb)](https://github.com/arpadav/misb) -->
 <!-- [![Coverage Status](https://coveralls.io/repos/github/arpadav/misb/badge.svg?branch=main)](https://coveralls.io/github/arpadav/misb?branch=main) -->
 
-<div style="text-align: center;">
+<p align="center">
   <img src="https://nsgreg.nga.mil/images/nsg_logo.png" alt="NGA" style="width: 100px; height: auto; display: inline-block; margin: 0 10px;">
   <img src="https://gwg.nga.mil/generated/assets/files/newgwglogosmall-1920px.webp" alt="GWG" style="width: 175px; height: auto; display: inline-block; margin: 0 10px;">
-</div>
+</p>
 
 * Documentation: [https://nsgreg.nga.mil/misb.jsp](nsgreg.nga.mil/misb.jsp)
 * Framework: [`tinyklv`: A KLV framework written in Rust](https://crates.io/crates/tinyklv)
