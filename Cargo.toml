@@ -24,13 +24,17 @@ default = [ "latest" ]
 latest = [
     "misb0102-latest",
     "misb0601-latest",
+    "misb0903-latest",
 ]
+
+misb0102-12 = []
+misb0102-latest = [ "misb0102-12" ]
 
 misb0601-19 = []
 misb0601-latest = [ "misb0601-19" ]
 
-misb0102-12 = []
-misb0102-latest = [ "misb0102-12" ]
+misb0903-6 = []
+misb0903-latest = [ "misb0903-6" ]
 
 [profile.dev]
 opt-level = 0
