@@ -185,23 +185,142 @@ pub struct Misb0903 {
     /// Units: None
     pub vmti_source_sensor: Option<String>,
 
-//     #[cfg(any(
-//         feature = "misb0903-6",
-//     ))]
-//     #[klv(key = 0x0B)]
-//     /// (Assumed Optional) Horizontal field of view of imaging sensor input
-//     /// to VMTI process.
-//     /// 
-//     /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
-//     /// the source input. ST 0903 requires Item 11 in two cases:
-//     /// 
-//     /// 1) standalone-VMTI, or
-//     /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
-//     /// 
-//     /// Otherwise, the parent (e.g., ST 0601 LS Item 16) provides the HFOV value.
-//     /// 
-//     /// Valid Values: The set of real numbers from 0 to 180 inclusive.
-//     /// 
-//     /// Units: Degrees (°)
-//     pub vmti_hfov: Option<f32>
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x0B, dec = ops::to_hvfov)]
+    /// (Assumed Optional) Horizontal field of view of imaging sensor input
+    /// to VMTI process.
+    /// 
+    /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
+    /// the source input. ST 0903 requires Item 11 in two cases:
+    /// 
+    /// 1) standalone-VMTI, or
+    /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
+    /// 
+    /// Otherwise, the parent (e.g., ST 0601 LS Item 16) provides the HFOV value.
+    /// 
+    /// Valid Values: The set of real numbers from 0 to 180 inclusive.
+    /// 
+    /// Units: Degrees (°)
+    pub vmti_hfov: Option<f64>,
+    
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x0C, dec = ops::to_hvfov)]
+    /// (Assumed Optional) Vertical field of view of imaging sensor input
+    /// to VMTI process
+    /// 
+    /// The `vmtiVerticalFov` item is the vertical field of view (VFOV) of
+    /// the source input. This is a required item in two cases:
+    /// 
+    /// 1) standalone-VMTI, or
+    /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
+    /// 
+    /// Otherwise, the parent (e.g., ST 0601 LS Item 17) provides the VFOV value.
+    /// 
+    /// Valid Values: The set of real numbers from 0 to 180 inclusive.
+    /// 
+    /// Units: Degrees (°)
+    pub vmti_vfov: Option<f64>,
+
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x0D)]
+    // /// (Assumed Optional) A Motion Imagery Identification System (MIIS)
+    // /// Core Identifier conformant with MISB ST 1204
+    // pub miis_id: Option<String>,
+
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x65, dec = Misb0903Target::decode_all_vtargets)]
+    /// (Mandatory) VTarget Packs ordered as a Series
+    /// 
+    /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    pub v_target_series: Vec<Misb0903Target>
+
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x66, dec = Misb0903Algorithm::decode)]
+    // /// (Mandatory) Series of one or more Algorithm LS (Local Set)
+    // /// 
+    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    // pub algorithm_series: Vec<Misb0903Algorithm>
+
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x67)]
+    // /// (Mandatory) Series of one or more Ontology LS (Local Set)
+    // /// 
+    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    // pub target_series: Vec<Misb0601Ontology>
 }
+
+#[cfg(any(
+    feature = "misb0903-6",
+))]
+#[derive(Klv, Debug)]
+#[klv(
+    stream = &[u8],
+    sentinel = b"\x06\x0E\x2B\x34\x02\x0B\x01\x01\x0E\x01\x03\x03\x06\x00\x00\x00",
+    key(enc = tinyklv::codecs::ber::enc::ber_oid,
+        dec = tinyklv::codecs::ber::dec::ber_oid::<u64>),
+    len(enc = tinyklv::codecs::ber::enc::ber_length,
+        dec = tinyklv::codecs::ber::dec::ber_length),
+    default(ty = u8, dec = tinyklv::codecs::binary::dec::be_u8),
+    default(ty = u16, dec = tinyklv::codecs::binary::dec::be_u16),
+    default(ty = i8, dec = tinyklv::codecs::binary::dec::be_i8),
+    default(ty = String, dec = tinyklv::codecs::binary::dec::to_string_utf8, dyn = true),
+)]
+pub struct Misb0903Target {
+    /// (Mandatory) Mandatory BER-OID encoded target id and first value
+    /// in a VTarget Pack
+    pub target_id: Option<u64>,
+    
+    #[klv(key = 0x01, dyn = true, dec = tinyklv::dec::binary::be_u32_lengthed)]
+    /// (Assumed Optional) Defines the position of the target within the Motion
+    /// Imagery frame as a pixel number
+    /// 
+    /// Units: Pixels
+    pub target_centroid: Option<u32>,
+
+    #[klv(key = 0x02, dyn = true, dec = tinyklv::dec::binary::be_u32_lengthed)]
+    /// (Assumed Optional) Defines the position of the target within the Motion
+    /// Imagery frame as a pixel number
+    /// 
+    /// Units: Pixels
+    pub bbox_tl: Option<u32>,
+
+    
+}
+impl Misb0903Target {
+    pub fn decode_all_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
+        todo!()
+    }
+
+    /// For MISB 0903, the target id is the first item in the VTarget Pack
+    /// and is not preceded by a key.
+    /// 
+    /// Meaning, when the key for the [`Misb0903Target`], specified
+    /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
+    /// input stream, then the length of the entire VTarget Pack is returned.
+    /// Intuitively, each element in the VTarget Pack will be a series of
+    /// keys and values. However, this is not the case for the first value:
+    /// [`Misb0903Target::target_id`], which is not preceded by a key.
+    /// 
+    /// See the standard documentation for more details.
+    pub fn decode_vtarget_item(input: &mut &[u8]) -> winnow::PResult<Self> {
+        let target_id = tinyklv::codecs::ber::dec::ber_oid::<u64>.parse_next(input).ok();
+        let mut output = Self::decode.parse_next(input)?;
+        output.target_id = target_id;
+        Ok(output)
+    }
+}
+
+// pub struct Misb0903Algorithm {}
+// pub struct Misb0601Ontology {}
