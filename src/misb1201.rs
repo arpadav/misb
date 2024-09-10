@@ -2,6 +2,21 @@
 // external
 // --------------------------------------------------
 use thisenum::Const;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ImapError {
+    #[error("Value is below the IMAP minimum.")]
+    BelowMinimum,
+    #[error("Value is above the IMAP maximum.")]
+    AboveMaximum,
+    #[error("Value is reserved by MISB, doesn't correspond to anything,")]
+    ReservedValue,
+    #[error("Value is a user-defined value, and no user-defined decoder is provided to interpret it.")]
+    UserDefinedValue,
+    #[error("IMAP parsing error: {0}.")]
+    ParseError(String),
+}
 
 /// Floating Point to Interger Mapping - A
 /// 
@@ -14,38 +29,38 @@ use thisenum::Const;
 /// * g < (b - a)
 pub struct ImapA<T>
 where
-    T: num_traits::Float,
-    T: num_traits::FromPrimitive,
+    T: std::fmt::Display,
+    T: num_traits::Float + num_traits::FromPrimitive,
 {
-    /// The minimum floating point value
-    /// 
-    /// Also known as a
-    min: T,
-    /// The maximum floating point value
-    /// 
-    /// Also known as b
-    max: T,
-    /// The floating point precision
-    /// 
-    /// Also known as g
-    precision: T,
     /// The [`ImapB`], once the length, in bytes, is known
     imapb: ImapB<T>,
 }
 /// [`ImapA`] implementation
 impl<T> ImapA<T>
 where
-    T: num_traits::Float,
-    T: num_traits::FromPrimitive,
+    T: std::fmt::Display,
+    T: num_traits::Float + num_traits::FromPrimitive,
 {
     /// Creates a new [`ImapA`]
     pub fn new(min: T, max: T, precision: T) -> Option<Self> {
+        Self::new_with_user_defined_xcoders(min, max, precision, None, None)
+    }
+
+    /// Creates a new [`ImapA`] with a user-defined value decoder / encoder
+    pub fn new_with_user_defined_xcoders(
+        min: T,
+        max: T,
+        precision: T,
+        user_enc: Option<fn(T) -> Vec<u8>>,
+        user_dec: Option<fn(&[u8]) -> T>,
+    ) -> Option<Self> {
         match min < max && precision < (max - min) {
             true => {
                 match Self::len(&min, &max, &precision) {
                     Some(len) => {
-                        let imapb = ImapB::new(min, max, len)?;
-                        Some(ImapA { min, max, precision, imapb })
+                        let imapb = ImapB::new_with_user_defined_xcoders(min, max, len, user_enc, user_dec)?;
+                        // Some(ImapA { min, max, precision, imapb, encoder: user_enc, decoder: user_dec })
+                        Some(ImapA { imapb })
                     }
                     None => None
                 }
@@ -67,10 +82,28 @@ where
         T::one() + T::one() + T::one() + T::one()
     }
 
-    // /// Returns the mapped value
-    // pub fn map<O>(&self, x: T) -> O {
-    //     self.imapb.map(x)
-    // }
+    /// Maps a floating point value to an integer value
+    /// 
+    /// Returns [`None`] when the value fails to be mapped. Otherwise:
+    /// 
+    /// * If NaN, return IMAP bytes for [`SpecialValue::PosQuietNan`] or [`SpecialValue::NegQuietNan`]
+    /// * If infinite, return IMAP bytes for [`SpecialValue::PosInfinity`] or [`SpecialValue::NegInfinity`]
+    /// * If below minimum, return IMAP bytes for [`SpecialValue::ImapBelowMinimum`]
+    /// * If above maximum, return IMAP bytes for [`SpecialValue::ImapAboveMaximum`]
+    /// * Otherwise, returns the successfully mapped value as IMAP bytes
+    pub fn to_imap(&self, x: T) -> Result<Vec<u8>, ImapError> {
+        self.imapb.to_imap(x)
+    }
+
+    /// Maps an IMAP integer value to a floating point value
+    /// 
+    /// Returns [`None`] when the value fails to be mapped
+    /// 
+    /// * If special, return the special value as a floating point
+    /// * Otherwise, returns the successfully decoded value
+    pub fn from_imap(&self, x: &Vec<u8>) -> Result<T, ImapError> {
+        self.imapb.from_imap(x)
+    }
 }
 
 /// Floating Point to Interger Mapping - B
@@ -83,8 +116,8 @@ where
 /// * a < b
 pub struct ImapB<T>
 where 
-    T: num_traits::Float,
-    T: num_traits::FromPrimitive,
+    T: std::fmt::Display,
+    T: num_traits::Float + num_traits::FromPrimitive,
 {
     /// The minimum floating point value
     /// 
@@ -96,25 +129,36 @@ where
     max: T,
     /// The length, in bytes
     len: usize,
-    /// Power of 2 adjustment - only used internally
-    b_pow: usize,
-    /// Power of 2 adjustment - only used internally
-    d_pow: usize,
     /// Scaling factor - forward
     s_f: T,
     /// Scaling factor - reverse
     s_r: T,
     /// The zero-point offset
     z_offset: T,
+    /// User defined encoder
+    encoder: Option<fn(T) -> Vec<u8>>,
+    /// User defined decoder
+    decoder: Option<fn(&[u8]) -> T>,
 }
 /// [`ImapB`] implementation
 impl<T> ImapB<T>
 where
-    T: num_traits::Float,
-    T: num_traits::FromPrimitive,
+    T: std::fmt::Display,
+    T: num_traits::Float + num_traits::FromPrimitive,
 {
     /// Creates a new [`ImapB`]
     pub fn new(min: T, max: T, len: usize) -> Option<Self> {
+        Self::new_with_user_defined_xcoders(min, max, len, None, None)
+    }
+
+    /// Creates a new [`ImapB`] with a user-defined value decoder / encoder
+    pub fn new_with_user_defined_xcoders(
+        min: T,
+        max: T,
+        len: usize,
+        user_enc: Option<fn(T) -> Vec<u8>>,
+        user_dec: Option<fn(&[u8]) -> T>,
+    ) -> Option<Self> {
         match min < max {
             true => {
                 let b_pow = Self::calc_b_pow(&min, &max)?;
@@ -122,20 +166,20 @@ where
                 let s_f = Self::calc_s_f(&b_pow, &d_pow)?;
                 let s_r = Self::calc_s_r(&b_pow, &d_pow)?;
                 let z_offset = Self::calc_z_offset(&min, &max, &s_f);
-                Some(ImapB { min, max, len, b_pow, d_pow, s_f, s_r, z_offset })
+                Some(ImapB { min, max, len, s_f, s_r, z_offset, encoder: user_enc, decoder: user_dec })
             },
             false => None
         }
     }
 
-    /// Calculates [`ImapB::b_pow`]
+    /// Calculates `b_pow`, used in calculating [`ImapB::s_f`] and [`ImapB::s_r`]
     fn calc_b_pow(min: &T, max: &T) -> Option<usize> {
         (*max - *min).log2().ceil().to_usize()
     }
 
-    /// Calculates [`ImapB::d_pow`]
+    /// Calculates `d_pow`, used in calculating [`ImapB::s_f`] and [`ImapB::s_r`]
     fn calc_d_pow(len: &usize) -> usize {
-        (*len - 1) * 8
+        (*len * 8) - 1
     }
 
     /// Calculates [`ImapB::s_f`]
@@ -145,7 +189,8 @@ where
 
     /// Calculates [`ImapB::s_r`]
     fn calc_s_r(b_pow: &usize, d_pow: &usize) -> Option<T> {
-        T::from_usize(2_usize.pow((*b_pow - *d_pow) as u32))
+        // is 2^(b_pow - d_pow), but b_pow will always be less than d_pow
+        T::from_f64(1.0 / (1 << (*d_pow - *b_pow)) as f64)
     }
 
     /// Calculates [`ImapB::z_offset`]
@@ -163,48 +208,95 @@ where
     /// 
     /// Returns [`None`] when the value fails to be mapped. Otherwise:
     /// 
-    /// * If NaN, return [`Value::PosQuietNan`] or [`Value::NegQuietNan`]
-    /// * If infinite, return [`Value::PosInfinity`] or [`Value::NegInfinity`]
-    /// * If below minimum, return [`Value::MisbDefined`] with [`MisbSpecialValues::ImapBelowMinimum`]
-    /// * If above maximum, return [`Value::MisbDefined`] with [`MisbSpecialValues::ImapAboveMaximum`]
-    /// * Otherwise, returns the successfully mapped value
-    pub fn to_imap(&self, x: T) -> Option<Vec<u8>> {
+    /// * If NaN, return IMAP bytes for [`SpecialValue::PosQuietNan`] or [`SpecialValue::NegQuietNan`]
+    /// * If infinite, return IMAP bytes for [`SpecialValue::PosInfinity`] or [`SpecialValue::NegInfinity`]
+    /// * If below minimum, return IMAP bytes for [`SpecialValue::ImapBelowMinimum`]
+    /// * If above maximum, return IMAP bytes for [`SpecialValue::ImapAboveMaximum`]
+    /// * Otherwise, returns the successfully mapped value as IMAP bytes
+    pub fn to_imap(&self, x: T) -> Result<Vec<u8>, ImapError> {
         // --------------------------------------------------
         // Rust's floating-point operations and the IEEE-754 standard
         // typically use quiet NaNs for representing invalid results
         // --------------------------------------------------
         if x.is_nan() {
-            return Some(match x.is_sign_positive() {
+            return Ok(match x.is_sign_positive() {
                 true => Value::Special(SpecialValue::PosQuietNan).to_imap(self.len),
                 false => Value::Special(SpecialValue::NegQuietNan).to_imap(self.len),
             })
         }
         if x.is_infinite() {
-            return Some(match x.is_sign_positive() {
+            return Ok(match x.is_sign_positive() {
                 true => Value::Special(SpecialValue::PosInfinity).to_imap(self.len),
                 false => Value::Special(SpecialValue::NegInfinity).to_imap(self.len),
             })
         }
-        if x < self.min { return Some(Value::Special(SpecialValue::ImapBelowMinimum).to_imap(self.len)) }
-        if x > self.max { return Some(Value::Special(SpecialValue::ImapAboveMaximum).to_imap(self.len)) }
+        if x < self.min { return Ok(Value::Special(SpecialValue::ImapBelowMinimum).to_imap(self.len)) }
+        if x > self.max { return Ok(Value::Special(SpecialValue::ImapAboveMaximum).to_imap(self.len)) }
         // --------------------------------------------------
         // truncate, convert to usize, then convert to len bytes
         // --------------------------------------------------
-        let y = (self.s_f * (x - self.min) + self.z_offset).trunc().to_usize()?;
-        Some((0..self.len).map(|i| ((y >> (8 * (self.len - 1 - i))) & 0xFF) as u8).collect())
+        let y = match (self.s_f * (x - self.min) + self.z_offset).trunc().to_usize() {
+            Some(x) => x,
+            None => return Err(ImapError::ParseError(format!("Cannot convert input {} to usize", x))),
+        };
+        Ok((0..self.len).map(|i| ((y >> (8 * (self.len - 1 - i))) & 0xFF) as u8).collect())
+    }
+
+    /// Maps a floating point value to an integer value, using
+    /// the custom user-defined encoder first, and then falling
+    /// back to the default implementation.
+    pub fn to_imap_with_encoder(&self, x: T) -> Result<Vec<u8>, ImapError> {
+        match self.encoder {
+            Some(enc) => Ok(enc(x)),
+            None => self.to_imap(x),
+        }
     }
 
     /// Maps an IMAP integer value to a floating point value
     /// 
     /// Returns [`None`] when the value fails to be mapped
     /// 
-    /// 
-    pub fn from_imap(&self, x: Vec<u8>) -> Option<T> {
-        if x.len() != self.len { return None }
-        // if (x[0] >> 7 & 1) & (x[0] >> 6 & 1) {
-        //     return Some(T::nan())
-        // }
-        None
+    /// * If special, return the special value
+    /// * Otherwise, returns the successfully decoded value
+    pub fn from_imap(&self, y: &Vec<u8>) -> Result<T, ImapError> {
+        if y.len() != self.len { return Err(ImapError::ParseError(format!("Cannot convert {} bytes to {} bytes", y.len(), self.len))) }
+        if (y[0] >> 7 & 1) & (y[0] >> 6 & 1) != 0 {
+            // --------------------------------------------------
+            // special value
+            // --------------------------------------------------
+            match SpecialValue::from_imap(&y) {
+                Some(sval) => match sval {
+                    SpecialValue::PosInfinity => return Ok(T::infinity()),
+                    SpecialValue::NegInfinity => return Ok(-T::infinity()),
+                    SpecialValue::PosQuietNan => return Ok(T::nan()),
+                    SpecialValue::NegQuietNan => return Ok(-T::nan()),
+                    SpecialValue::PosSignalNan => return Ok(T::nan()),
+                    SpecialValue::NegSignalNan => return Ok(-T::nan()),
+                    SpecialValue::ImapBelowMinimum => return Ok(self.min),
+                    SpecialValue::ImapAboveMaximum => return Ok(self.max),
+                    SpecialValue::ReservedSpecial => return Err(ImapError::ReservedValue),
+                    SpecialValue::ReservedMisbDefined => return Err(ImapError::ReservedValue),
+                    SpecialValue::UserDefined => match self.decoder {
+                        Some(dec) => return Ok(dec(&y)),
+                        None => return Err(ImapError::UserDefinedValue),
+                    },
+                },
+                None => return Err(ImapError::ParseError(format!("Cannot parse special value: {y:?}"))),
+            }
+        } else {
+            // --------------------------------------------------
+            // normal value
+            // --------------------------------------------------
+            let y = match T::from_u64(u64::from_be_bytes({
+                let mut b = [0u8; 8];
+                b[8 - y.len().min(8)..].copy_from_slice(&y[..y.len().min(8)]);
+                b
+            })) {
+                Some(x) => x,
+                None => return Err(ImapError::ParseError(format!("Cannot parse value: {y:?}"))),
+            };
+            return Ok(self.s_r * (y - self.z_offset) + self.min)
+        }
     }
 }
 
@@ -222,26 +314,18 @@ impl Value {
             Value::Special(x) => x.to_imap(&len),
         }
     }
-
-    // /// From an IMAP value
-    // pub fn from_imap(x: Vec<u8>, len: usize) -> Option<Self> {
-    //     match x.len() == len {
-    //         true => Some(Value::Normal(x)),
-    //         false => None
-    //     }
-    // }
 }
 
 #[derive(Const)]
 #[armtype(u8)]
 /// MISB Standard 1201 Special Values
 /// 
-/// b_n         = 1
-/// b_n-1       = Special bit
-/// b_n-2       = Sign bit
-/// b_n-3       = NaN bit
-/// b_n-4       = Any
-/// b_n-5 - b_0 = Contextual (either user defined, zero-filled, etc.)
+/// * b_n         = 1
+/// * b_n-1       = Special bit
+/// * b_n-2       = Sign bit
+/// * b_n-3       = NaN bit
+/// * b_n-4       = Any
+/// * b_n-5 - b_0 = Contextual (either user defined, zero-filled, etc.)
 /// 
 /// See [https://nsgreg.nga.mil/misb.jsp](https://nsgreg.nga.mil/misb.jsp)
 pub enum SpecialValue {
@@ -284,12 +368,12 @@ impl SpecialValue {
     }
 
     /// From a IMAP value
-    pub fn from_imap(&self, x: &Vec<u8>) -> Option<SpecialValue> {
+    pub fn from_imap(y: &Vec<u8>) -> Option<SpecialValue> {
         // --------------------------------------------------
         // do not include the 3 trailing bits of the most-significant byte
         // --------------------------------------------------
-        match Self::try_from(x[0] & 0b1111_1000) {
-            Ok(v) => match v {
+        match Self::try_from(y[0] & 0b1111_1000) {
+            Ok(sval) => match sval {
                 SpecialValue::PosInfinity |
                 SpecialValue::NegInfinity |
                 SpecialValue::ImapBelowMinimum |
@@ -297,8 +381,8 @@ impl SpecialValue {
                     // --------------------------------------------------
                     // for these values, the trailing bits must be zero
                     // --------------------------------------------------
-                    if x[1..] != vec![0u8; x.len() - 1] { return None }
-                    return Some(v)
+                    if y[1..] != vec![0u8; y.len() - 1] { return None }
+                    return Some(sval)
                 },
                 SpecialValue::UserDefined => return Some(SpecialValue::UserDefined),
                 _ => (),
@@ -309,16 +393,16 @@ impl SpecialValue {
         // The default NaN Identifier is a value with all zeros
         // therefore, do not check the trailing bits
         // --------------------------------------------------
-        if (x[0] & SpecialValue::PosQuietNan.value()) == *SpecialValue::PosQuietNan.value() { return Some(SpecialValue::PosQuietNan) }
-        if (x[0] & SpecialValue::NegQuietNan.value()) == *SpecialValue::NegQuietNan.value() { return Some(SpecialValue::NegQuietNan) }
-        if (x[0] & SpecialValue::PosSignalNan.value()) == *SpecialValue::PosSignalNan.value() { return Some(SpecialValue::PosSignalNan) }
-        if (x[0] & SpecialValue::NegSignalNan.value()) == *SpecialValue::NegSignalNan.value() { return Some(SpecialValue::NegSignalNan) }
+        if (y[0] & SpecialValue::PosQuietNan.value()) == *SpecialValue::PosQuietNan.value() { return Some(SpecialValue::PosQuietNan) }
+        if (y[0] & SpecialValue::NegQuietNan.value()) == *SpecialValue::NegQuietNan.value() { return Some(SpecialValue::NegQuietNan) }
+        if (y[0] & SpecialValue::PosSignalNan.value()) == *SpecialValue::PosSignalNan.value() { return Some(SpecialValue::PosSignalNan) }
+        if (y[0] & SpecialValue::NegSignalNan.value()) == *SpecialValue::NegSignalNan.value() { return Some(SpecialValue::NegSignalNan) }
         // --------------------------------------------------
         // if starts with 0b10XX_XXXX, where any X is set, 
         // then the value is a reserved special value
         // --------------------------------------------------
-        if (x[0] & 0b1100_0000) == 0b1000_0000
-        && (x[0] & 0b0011_1111 != 0 || x[1..].iter().any(|&b| b != 0))
+        if (y[0] & 0b1100_0000) == 0b1000_0000
+        && (y[0] & 0b0011_1111 != 0 || y[1..].iter().any(|&byte| byte != 0))
         {
             return Some(SpecialValue::ReservedSpecial)
         }
@@ -327,9 +411,9 @@ impl SpecialValue {
         // and A is 0 or 1, and the remaining bits are zero
         // then the value is a reserved MISB defined value
         // --------------------------------------------------
-        if (x[0] & 0b1111_1000) == 0b1110_0000
-        && x[0] & 0b0000_0110 != 0
-        && x[1..] == vec![0u8; x.len() - 1]
+        if (y[0] & 0b1111_1000) == 0b1110_0000
+        && y[0] & 0b0000_0110 != 0
+        && y[1..] == vec![0u8; y.len() - 1]
         {
             return Some(SpecialValue::ReservedMisbDefined)
         }
@@ -340,13 +424,104 @@ impl SpecialValue {
     }
 }
 
-
+#[cfg(test)]
 mod test {
     use rand::Rng;
+    use core::f64;
     use std::time::{
         Instant,
         Duration,
     };
+
+    use super::ImapA;
+    use super::ImapB;
+
+    #[test]
+    fn imap_a_from_spec_0() {
+        let example = ImapA::new(-900.0, 19_000.0, 0.5).unwrap();
+        
+        assert_eq!(example.to_imap(-900.0).unwrap(), vec![0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x00_u8, 0x00, 0x00]).unwrap(), -900.0);
+        
+        assert_eq!(example.to_imap(10.0).unwrap(), vec![0x03, 0x8E, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x03_u8, 0x8E, 0x00]).unwrap(), 10.0);
+        
+        assert_eq!(example.to_imap(0.0).unwrap(), vec![0x03, 0x84, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x03_u8, 0x84, 0x00]).unwrap(), 0.0);
+        
+        assert_eq!(example.to_imap(f64::NEG_INFINITY).unwrap(), vec![0xE8, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xE8_u8, 0x00, 0x00]).unwrap(), f64::NEG_INFINITY);
+    }
+
+    #[test]
+    fn imap_b_from_spec_0() {
+        let example = ImapB::new(0.1, 0.9, 2).unwrap();
+        
+        assert_eq!(example.to_imap(0.1).unwrap(), vec![0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x00_u8, 0x00]).unwrap(), 0.1);
+        
+        assert_eq!(example.to_imap(0.5).unwrap(), vec![0x33, 0x33]);
+        assert_eq!(example.from_imap(&vec![0x33_u8, 0x33]).unwrap(), 0.499993896484375);
+        
+        assert_eq!(example.to_imap(0.9).unwrap(), vec![0x66, 0x66]);
+        assert_eq!(example.from_imap(&vec![0x66_u8, 0x66]).unwrap(), 0.89998779296875);
+
+        assert_eq!(example.to_imap(f64::NEG_INFINITY).unwrap(), vec![0xE8, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xE8_u8, 0x00]).unwrap(), f64::NEG_INFINITY);
+    }
+
+    #[test]
+    fn imap_a_from_spec_1() {
+        let example = ImapA::new(0.0, 100.0, 1e-5).unwrap();
+
+        assert_eq!(example.to_imap(0.0).unwrap(), vec![0x00, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x00, 0x00, 0x00, 0x00]).unwrap(), 0.0);
+
+        assert_eq!(example.to_imap(10.1).unwrap(), vec![0x0A, 0x19, 0x99, 0x99]);
+        assert!(example.from_imap(&vec![0x0A, 0x19, 0x99, 0x99]).unwrap() - 10.09999996 < 1e-8);
+        
+        assert_eq!(example.to_imap(20.2).unwrap(), vec![0x14, 0x33, 0x33, 0x33]);
+        assert!(example.from_imap(&vec![0x14, 0x33, 0x33, 0x33]).unwrap() - 20.19999999 < 1e-8);
+        
+        assert_eq!(example.to_imap(30.3).unwrap(), vec![0x1E, 0x4C, 0xCC, 0xCC]);
+        assert!(example.from_imap(&vec![0x1E, 0x4C, 0xCC, 0xCC]).unwrap() - 30.29999995 < 1e-8);
+        
+        assert_eq!(example.to_imap(40.4).unwrap(), vec![0x28, 0x66, 0x66, 0x66]);
+        assert!(example.from_imap(&vec![0x28, 0x66, 0x66, 0x66]).unwrap() - 40.39999998 < 1e-8);
+        
+        assert_eq!(example.to_imap(50.5).unwrap(), vec![0x32, 0x80, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x32, 0x80, 0x00, 0x00]).unwrap(), 50.5);
+        
+        assert_eq!(example.to_imap(60.6).unwrap(), vec![0x3C, 0x99, 0x99, 0x99]);
+        assert!(example.from_imap(&vec![0x3C, 0x99, 0x99, 0x99]).unwrap() - 60.59999996 < 1e-8);
+        
+        assert_eq!(example.to_imap(70.7).unwrap(), vec![0x46, 0xB3, 0x33, 0x33]);
+        assert!(example.from_imap(&vec![0x46, 0xB3, 0x33, 0x33]).unwrap() - 70.69999999 < 1e-8);
+        
+        assert_eq!(example.to_imap(80.8).unwrap(), vec![0x50, 0xCC, 0xCC, 0xCC]);
+        assert!(example.from_imap(&vec![0x50, 0xCC, 0xCC, 0xCC]).unwrap() -80.79999995 < 1e-8);
+        
+        assert_eq!(example.to_imap(90.9).unwrap(), vec![0x5A, 0xE6, 0x66, 0x66]);
+        assert!(example.from_imap(&vec![0x5A, 0xE6, 0x66, 0x66]).unwrap() - 90.89999998 < 1e-8);
+        
+        assert_eq!(example.to_imap(100.0).unwrap(), vec![0x64, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0x64, 0x00, 0x00, 0x00]).unwrap(), 100.0);
+        
+        assert_eq!(example.to_imap(f64::NAN).unwrap(), vec![0xD0, 0x00, 0x00, 0x00]);
+        assert!(example.from_imap(&vec![0xD0, 0x00, 0x00, 0x00]).unwrap().is_nan());
+        
+        assert_eq!(example.to_imap(f64::INFINITY).unwrap(), vec![0xC8, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xC8, 0x00, 0x00, 0x00]).unwrap(), f64::INFINITY);
+        
+        assert_eq!(example.to_imap(f64::NEG_INFINITY).unwrap(), vec![0xE8, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xE8, 0x00, 0x00, 0x00]).unwrap(), f64::NEG_INFINITY);
+        
+        // assert_eq!(example.to_imap(-1.0).unwrap(), vec![0xE0, 0x00, 0x00, 0x00]);
+        // assert_eq!(example.from_imap(&vec![0xE0, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::BelowMinimum);
+        
+        // assert_eq!(example.to_imap(101.0).unwrap(), vec![0xE1, 0x00, 0x00, 0x00]);
+        // assert_eq!(example.from_imap(&vec![0xE1, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::AboveMaximum);
+    }
 
     #[test]
     fn main() {

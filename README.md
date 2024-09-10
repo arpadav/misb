@@ -7,13 +7,9 @@
 
 ## ***THIS CRATE IS CURRENTLY UNDER ACTIVE DEVELOPMENT. THIS IS ONLY MEANT FOR CRATE RESERVATION. DO NOT USE WHILE VERSION IS x.x.x-alpha***
 
-<p align="center">
-  <img src="https://nsgreg.nga.mil/images/nsg_logo.png" alt="NGA" style="width: 125px; height: auto; display: inline-block; margin: 0 10px;">
-  <img src="https://gwg.nga.mil/generated/assets/files/newgwglogosmall-1920px.webp" alt="GWG" style="width: 215px; height: auto; display: inline-block; margin: 0 10px;">
-  <img src="https://nsgreg.nga.mil/images/nga_logo.png" alt="NGA" style="width: 125px; height: auto; display: inline-block; margin: 0 10px;">
-</p>
+![nsg-gwg-nga](https://arpadvoros.com/public/misb-crate-banner.png)
 
-* Documentation: [https://nsgreg.nga.mil/misb.jsp](nsgreg.nga.mil/misb.jsp)
+* Documentation: [https://nsgreg.nga.mil/misb.jsp](https://nsgreg.nga.mil/misb.jsp)
 * Framework: [`tinyklv`: A KLV framework written in Rust](https://crates.io/crates/tinyklv)
 
 ## Current standards implemented
