@@ -4,7 +4,7 @@
 use thisenum::Const;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ImapError {
     #[error("Value is below the IMAP minimum.")]
     BelowMinimum,
@@ -435,6 +435,7 @@ mod test {
 
     use super::ImapA;
     use super::ImapB;
+    use super::ImapError;
 
     #[test]
     fn imap_a_from_spec_0() {
@@ -516,11 +517,11 @@ mod test {
         assert_eq!(example.to_imap(f64::NEG_INFINITY).unwrap(), vec![0xE8, 0x00, 0x00, 0x00]);
         assert_eq!(example.from_imap(&vec![0xE8, 0x00, 0x00, 0x00]).unwrap(), f64::NEG_INFINITY);
         
-        // assert_eq!(example.to_imap(-1.0).unwrap(), vec![0xE0, 0x00, 0x00, 0x00]);
-        // assert_eq!(example.from_imap(&vec![0xE0, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::BelowMinimum);
+        assert_eq!(example.to_imap(-1.0).unwrap(), vec![0xE0, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xE0, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::BelowMinimum);
         
-        // assert_eq!(example.to_imap(101.0).unwrap(), vec![0xE1, 0x00, 0x00, 0x00]);
-        // assert_eq!(example.from_imap(&vec![0xE1, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::AboveMaximum);
+        assert_eq!(example.to_imap(101.0).unwrap(), vec![0xE1, 0x00, 0x00, 0x00]);
+        assert_eq!(example.from_imap(&vec![0xE1, 0x00, 0x00, 0x00]).unwrap_err(), ImapError::AboveMaximum);
     }
 
     #[test]
