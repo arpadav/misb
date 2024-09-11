@@ -67,7 +67,7 @@ impl PixelPosition {
 
     #[inline(always)]
     /// Decodes a pixel number from a stream
-    fn decode(input: &mut &[u8], len: usize) -> winnow::PResult<Self> {
+    pub fn decode(input: &mut &[u8], len: usize) -> winnow::PResult<Self> {
         Ok(PixelPosition::new(tinyklv::binary::dec::be_u32_lengthed(input, len)?))
     }
 }
@@ -144,13 +144,13 @@ impl Motion {
     /// Decodes a velocity
     /// 
     /// See: [`crate::misb0903::Motion`]
-    fn decode_velocity(input: &mut &[u8]) -> winnow::PResult<Self> {
+    pub fn decode_velocity(input: &mut &[u8]) -> winnow::PResult<Self> {
         Ok(Motion::Velocity(MotionValues::decode(input)?))
     }
     /// Decodes an acceleration
     /// 
     /// See: [`crate::misb0903::Motion`]
-    fn decode_acceleration(input: &mut &[u8]) -> winnow::PResult<Self> {
+    pub fn decode_acceleration(input: &mut &[u8]) -> winnow::PResult<Self> {
         Ok(Motion::Acceleration(MotionValues::decode(input)?))
     }
 }

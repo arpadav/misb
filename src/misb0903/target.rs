@@ -12,7 +12,7 @@ use thisenum::Const;
 // --------------------------------------------------
 // local
 // --------------------------------------------------
-// use crate::misb0903::ops;
+use crate::misb0903::ops;
 use crate::misb0903::primitives::*;
 
 #[cfg(any(
@@ -369,7 +369,7 @@ pub struct Misb0903Target {
     #[cfg(any(
         feature = "misb0903-6",
     ))]
-    #[klv(key = 0x11, dyn = true, dec = Location::decode)]
+    #[klv(key = 0x11, dec = Location::decode)]
     /// (Assumed Optional) Location of the target (latitude, longitude, & height above WGS84 Ellipsoid),
     /// with sigma and rho values
     /// 
@@ -476,20 +476,20 @@ pub struct Misb0903Target {
     /// The `detectionStatus` item allows assigning a target a status in detection.
     pub detection_status: Option<DetectionStatus>,
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x65)]
-    /// (Assumed Optional) DESCRIPTION
-    /// 
-    /// LONG_DESCRIPTION
-    /// 
-    /// Valid values: 
-    /// 
-    /// Len:
-    /// 
-    /// Units:
-    pub v_mask: (),
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x65)]
+    // /// (Assumed Optional) DESCRIPTION
+    // /// 
+    // /// LONG_DESCRIPTION
+    // /// 
+    // /// Valid values: 
+    // /// 
+    // /// Len:
+    // /// 
+    // /// Units:
+    // pub v_mask: (),
 
     #[cfg(not(
         feature = "misb0903-6",
@@ -517,41 +517,41 @@ pub struct Misb0903Target {
     /// ```
     pub placeholder_key_67: (),
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x68)]
-    /// (Assumed Optional) DESCRIPTION
-    /// 
-    /// LONG_DESCRIPTION
-    pub v_tracker: (),
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x68)]
+    // /// (Assumed Optional) DESCRIPTION
+    // /// 
+    // /// LONG_DESCRIPTION
+    // pub v_tracker: (),
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x69)]
-    /// (Assumed Optional) DESCRIPTION
-    /// 
-    /// LONG_DESCRIPTION
-    pub v_chip: (),
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x69)]
+    // /// (Assumed Optional) DESCRIPTION
+    // /// 
+    // /// LONG_DESCRIPTION
+    // pub v_chip: (),
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x6A)]
-    /// (Assumed Optional) DESCRIPTION
-    /// 
-    /// LONG_DESCRIPTION
-    pub v_chip_series: (),
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x6A)]
+    // /// (Assumed Optional) DESCRIPTION
+    // /// 
+    // /// LONG_DESCRIPTION
+    // pub v_chip_series: (),
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x6B)]
-    /// (Assumed Optional) DESCRIPTION
-    /// 
-    /// LONG_DESCRIPTION
-    pub v_object_series: (),
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x6B)]
+    // /// (Assumed Optional) DESCRIPTION
+    // /// 
+    // /// LONG_DESCRIPTION
+    // pub v_object_series: (),
 }
 impl Misb0903Target {
     pub fn decode_all_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
