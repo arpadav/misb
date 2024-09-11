@@ -314,9 +314,7 @@ impl CountryCodingMethod {
 /// [`CountryCodingMethod`] implementation of [`tinyklv::prelude::Decode`]
 impl tinyklv::prelude::Decode<&[u8]> for CountryCodingMethod {
     fn decode(input: &mut &[u8]) -> winnow::PResult<Self> {
-        CountryCodingMethod::try_from(
-            tinyklv::dec::binary::be_u8.parse_next(input)?
-        ).map_err(|_| tinyklv::err!())
+        Self::try_from(tinyklv::dec::binary::be_u8.parse_next(input)?).map_err(|_| tinyklv::err!())
     }
 }
 /// [`CountryCodingMethod`] implementation of [`tinyklv::prelude::Encode`]

@@ -3,6 +3,10 @@
 // --------------------------------------------------
 use tinyklv::Klv;
 use tinyklv::prelude::*;
+// --------------------------------------------------
+// external
+// --------------------------------------------------
+use thisenum::Const;
 
 // --------------------------------------------------
 // local
@@ -633,7 +637,8 @@ pub struct Misb0903Target {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x11, dyn = true, dec = Location::decode)]
-    /// (Assumed Optional) DESCRIPTION
+    /// (Assumed Optional) Location of the target (latitude, longitude, & height above WGS84 Ellipsoid),
+    /// with sigma and rho values
     /// 
     /// The `targetLocation` item provides detailed geo-positioning information for a target, optionally including
     /// the standard deviation and correlation coefficients. This item is of type [`Location`] which is a Defined
@@ -645,47 +650,56 @@ pub struct Misb0903Target {
     #[cfg(any(
         feature = "misb0903-6",
     ))]
-    #[klv(key = 0x12)]
-    /// (Assumed Optional) DESCRIPTION
+    #[klv(key = 0x12, dec = Location::repeated)]
+    /// (Assumed Optional) Geospatial boundary encompassing the target
     /// 
-    /// LONG_DESCRIPTION
-    /// 
-    /// Valid values: 
-    /// 
-    /// Len:
-    /// 
-    /// Units:
-    pub geospatial_contour_series: (),
+    /// The `geospatialContourSeries` item is of type [`BoundarySeries`], which provides detailed geopositioning
+    /// information for the contour around the target. An arbitrary number of vertices defines the contour.
+    /// Each vertex is an element of type [`Location`]. The [`Location`] type captures geopositioning data about
+    /// a specific location on or near the surface of the Earth. Typical geospatial contours include boxes defined
+    /// by two or four vertices, although other contours are possible. Use a `geospatialContourSeries` instead of
+    /// a target's geospatial bounding box (Items 13 through 16) when accuracy and correlation information is
+    /// available and needed. Such information aids fusion with other moving object indicators, such as, radar
+    /// based GMTI, to support track identification and tracking.
+    pub geospatial_contour_series: Option<Vec<Location>>,
 
     #[cfg(any(
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x13)]
-    /// (Assumed Optional) DESCRIPTION
+    /// (Assumed Optional) Specifies the row in pixels of the target centroid within the Motion Imagery frame
     /// 
-    /// LONG_DESCRIPTION
+    /// The `centroidPixRow` item specifies the row of the target centroid within the Motion Imagery
+    /// frame in pixels. Numbering commences from 1, denoting the top row. The `centroidPixRow` may
+    /// be used with VTarget Pack `centroidPixCol` - Item 20 to provide an alternate method to specify
+    /// VTarget Pack `targetCentroid` – Item 1, the pixel location of the target centroid. If present, the
+    /// `centroidPixCol` - Item 20 must also be present.
     /// 
-    /// Valid values: 
+    /// Valid values: [1, 2^32 - 1]
     /// 
-    /// Len:
+    /// Len: V4
     /// 
-    /// Units:
-    pub centroid_rows: (),
+    /// Units: None
+    pub centroid_rows: Option<u32>,
 
     #[cfg(any(
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x14)]
-    /// (Assumed Optional) DESCRIPTION
+    /// (Assumed Optional) Specifies the column in pixels of the target centroid within the Motion Imagery frame
     /// 
-    /// LONG_DESCRIPTION
+    /// The `centroidPixCol` item specifies the column of the target centroid within the Motion Imagery
+    /// frame in pixels. Numbering commences from 1, denoting the left column. May be used with
+    /// VTarget Pack `centroidPixRow` - Item 19 to provide an alternate method to specify VTarget Pack
+    /// targetCentroid – Item 1, the pixel location of the target centroid. If present, the `centroidPixRow` -
+    /// Item 19 must also be present.
     /// 
-    /// Valid values: 
+    /// Valid values: [1, 2^32 - 1]
     /// 
-    /// Len:
+    /// Len: V4
     /// 
-    /// Units:
-    pub centroid_cols: (),
+    /// Units: None
+    pub centroid_cols: Option<u32>,
 
     #[cfg(not(
         feature = "misb0903-6",
@@ -704,31 +718,28 @@ pub struct Misb0903Target {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x16)]
-    /// (Assumed Optional) DESCRIPTION
+    /// (Assumed Optional) Identifier indicating which algorithm in Algorithm Series detected
+    /// this target
     /// 
-    /// LONG_DESCRIPTION
+    /// The `algorithmId` item refers to one of the algorithm ids in the VMTI LS `algorithmSeries` Item
+    /// 102, which lists all the algorithms a VMTI LS uses. Each algorithm in the series includes an
+    /// identifier (`algorithmId`). The `algorithmId` value equals one of the Id values in the
+    /// `algorithmSeries`.
     /// 
-    /// Valid values: 
+    /// Len: V3 
     /// 
-    /// Len:
-    /// 
-    /// Units:
-    pub algorithm_id: (),
+    /// Units: None
+    pub algorithm_id: Option<u32>,
 
     #[cfg(any(
         feature = "misb0903-6",
     ))]
-    #[klv(key = 0x17)]
-    /// (Assumed Optional) DESCRIPTION
+    #[klv(key = 0x17, dec = DetectionStatus::decode)]
+    /// (Assumed Optional) Enumeration indicating the current state of VMTI detections for
+    /// a given entity (Inactive, ActiveMoving, Dropped, Active-Stopped, Active-Coasting)
     /// 
-    /// LONG_DESCRIPTION
-    /// 
-    /// Valid values: 
-    /// 
-    /// Len:
-    /// 
-    /// Units:
-    pub detection_status: (),
+    /// The `detectionStatus` item allows assigning a target a status in detection.
+    pub detection_status: Option<DetectionStatus>,
 
     #[cfg(any(
         feature = "misb0903-6",
@@ -925,6 +936,10 @@ pub struct Location {
     hae: f64,
     measurements: EnuMeasurements,
 }
+/// [`Location`] implementation of [`crate::LengthBytes`]
+impl crate::LengthBytes for Location {
+    const LENGTH_BYTES: usize = 10 + EnuMeasurements::LENGTH_BYTES;
+}
 /// [`Location`] implementation of [`tinyklv::prelude::Decode`]
 impl tinyklv::prelude::Decode<&[u8]> for Location {
     fn decode(input: &mut &[u8]) -> winnow::PResult<Self> {
@@ -984,6 +999,10 @@ pub struct MotionValues {
     up: f64,
     measurements: EnuMeasurements,
 }
+/// [`MotionValues`] implementation of [`crate::LengthBytes`]
+impl crate::LengthBytes for MotionValues {
+    const LENGTH_BYTES: usize = 6 + EnuMeasurements::LENGTH_BYTES;
+}
 /// [`MotionValues`] implementation of [`tinyklv::prelude::Decode`]
 impl tinyklv::prelude::Decode<&[u8]> for MotionValues {
     fn decode(input: &mut &[u8]) -> winnow::PResult<Self> {
@@ -1019,6 +1038,10 @@ pub struct EnuMeasurements {
     rho_east_up: f64,
     rho_north_up: f64,
 }
+/// [`EnuMeasurements`] implementation of [`crate::LengthBytes`]
+impl crate::LengthBytes for EnuMeasurements {
+    const LENGTH_BYTES: usize = 12;
+}
 /// [`EnuMeasurements`] implementation of [`tinyklv::prelude::Decode`]
 impl tinyklv::prelude::Decode<&[u8]> for EnuMeasurements {
     fn decode(input: &mut &[u8]) -> winnow::PResult<Self> {
@@ -1038,5 +1061,49 @@ impl tinyklv::prelude::Decode<&[u8]> for EnuMeasurements {
             ops::imapb_parser(&ops::IMAPB_N1_1_2_F64, 2),
         ).parse_next(input)?;
         Ok(Self { sig_east, sig_north, sig_up, rho_east_north, rho_east_up, rho_north_up })
+    }
+}
+
+#[derive(Const)]
+#[armtype(u8)]
+/// Detection Status
+/// 
+/// See 7.2 of MISB 0903.6
+pub enum DetectionStatus {
+    #[value = 0]
+    /// The target's coasting time has expired.
+    /// The target may be reacquired in future detections.
+    Inactive,
+
+    #[value = 1]
+    /// The target is in motion.
+    /// System maintains visual detection of moving target.
+    ActiveMoving,
+
+    #[value = 2]
+    /// The system does not detect target and determines it is no longer visible.
+    /// The system will not reuse the target id.
+    Dropped,
+
+    #[value = 3]
+    /// The target is stationary.
+    /// System maintains visual detection of stationary targets.
+    ActiveStopped,
+
+    #[value = 4]
+    /// The system is waiting for the target's coasting time to expire.
+    /// The target may be reacquired in future detections.
+    ActiveCoasting,
+}
+/// [`DetectionStatus`] implementation of [`tinyklv::prelude::Decode`]
+impl tinyklv::prelude::Decode<&[u8]> for DetectionStatus {
+    fn decode(input: &mut &[u8]) -> winnow::PResult<Self> {
+        Self::try_from(tinyklv::dec::binary::be_u8.parse_next(input)?).map_err(|_| tinyklv::err!())
+    }
+}
+/// [`DetectionStatus`] implementation of [`tinyklv::prelude::Encode`]
+impl tinyklv::prelude::Encode<Vec<u8>> for DetectionStatus {
+    fn encode(&self) -> Vec<u8> {
+        return vec![*self.value()]
     }
 }
