@@ -122,6 +122,7 @@ impl<T: ImapFloat> ImapA<T> {
     }
 }
 
+#[derive(Debug)]
 /// Floating Point to Interger Mapping - Starting Point B
 /// 
 /// This defines the min, max, and length for a floating
@@ -312,6 +313,7 @@ impl<T: ImapFloat> ImapB<T> {
         }
     }
 }
+// impl<T: ImapFloat> Send for ImapA<T> {}
 
 /// IMAP value
 pub enum Value {
