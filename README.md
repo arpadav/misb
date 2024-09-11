@@ -7,7 +7,7 @@
 
 ## ***THIS CRATE IS CURRENTLY UNDER ACTIVE DEVELOPMENT. THIS IS ONLY MEANT FOR CRATE RESERVATION. DO NOT USE WHILE VERSION IS x.x.x-alpha***
 
-![nsg-gwg-nga](https://arpadvoros.com/public/misb-crate-banner.png)
+<!-- ![nsg-gwg-nga](https://arpadvoros.com/public/misb-crate-banner.png) -->
 
 * Documentation: [https://nsgreg.nga.mil/misb.jsp](https://nsgreg.nga.mil/misb.jsp)
 * Framework: [`tinyklv`: A KLV framework written in Rust](https://crates.io/crates/tinyklv)
