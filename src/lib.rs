@@ -1,3 +1,4 @@
+// #![forbid(unsafe_code)]
 pub mod misb0102;
 pub mod misb0601;
 pub mod misb0903;

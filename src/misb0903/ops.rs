@@ -6,9 +6,15 @@ use tinyklv::prelude::*;
 // --------------------------------------------------
 // static
 // --------------------------------------------------
-lazy_static::lazy_static! {
-    static ref IMAPB_0_180_2_F64: crate::misb1201::ImapB<f64> = crate::misb1201::ImapB::new(0.0, 180.0, 2).unwrap();
-}
+use std::sync::LazyLock;
+/// 2 byte-precision in range [0, 180]
+/// 
+/// Used for some angles
+/// 
+/// Units: Degrees (°)
+static IMAPB_0_180_2_F64: LazyLock<crate::misb1201::ImapB<f64>> = LazyLock::new(|| {
+    crate::misb1201::ImapB::new(0.0, 180.0, 2).unwrap()
+});
 
 /// See: [`crate::misb0903::Misb0903`]
 /// 

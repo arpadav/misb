@@ -324,3 +324,60 @@ impl Misb0903Target {
 
 // pub struct Misb0903Algorithm {}
 // pub struct Misb0601Ontology {}
+
+/// A pixel position
+/// 
+/// Defaults to a pixel number, but once a frame
+/// width is provided, it is converted to a row and column
+/// 
+/// This is not intended to go in reverse. It is solely
+/// for initialization purposes.
+/// 
+/// For usage examples, please see: 
+/// 
+/// * [`Misb0903Target::bbox_tl`]
+/// * [`Misb0903Target::bbox_br`]
+pub struct Pixel {
+    ty: PixelType,
+    width: Option<f32>
+}
+/// [`Pixel`] implementation
+impl Pixel {
+    /// Creates a new [`Pixel`]
+    pub fn new(num: u32) -> Self {
+        Self { ty: PixelType::PixelNumber(num), width: None }
+    }
+    /// Updates itself with a new [`PixelType`]
+    pub fn from(&mut self, width: f32) -> &mut Self {
+        self.width = Some(width);
+        let ty: PixelType = self.into();
+        self.ty = ty;
+        self
+    }
+}
+/// [`PixelType`] implementation of [`From`] for [`Pixel`]
+impl From<&mut Pixel> for PixelType {
+    fn from(pixel: &mut Pixel) -> Self {
+        let num = match pixel.ty {
+            PixelType::RowCol(_, _) => return pixel.ty.clone(),
+            PixelType::PixelNumber(n) => n,
+        };
+        match pixel.width {
+            None => pixel.ty,
+            Some(w) => {
+                let row = ((num as f32 / w)).floor() as u32 + 1;
+                let col = ((num - (row - 1)) as f32 * w) as u32;
+                PixelType::RowCol(row, col)
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+/// A pixel type
+/// 
+/// This can either be a pixel number or a row and column
+pub(crate) enum PixelType {
+    PixelNumber(u32),
+    RowCol(u32, u32),
+}
