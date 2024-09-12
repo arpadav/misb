@@ -269,7 +269,7 @@ impl tinyklv::prelude::Decode<&[u8]> for DetectionStatus {
     }
 }
 /// [`DetectionStatus`] implementation of [`tinyklv::prelude::Encode`]
-impl tinyklv::prelude::Encode<Vec<u8>> for DetectionStatus {
+impl tinyklv::prelude::Encode<u8, Vec<u8>> for DetectionStatus {
     fn encode(&self) -> Vec<u8> {
         return vec![*self.value()]
     }

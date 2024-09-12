@@ -223,7 +223,7 @@ impl tinyklv::prelude::Decode<&[u8]> for SecurityClassification {
     }
 }
 /// [`SecurityClassification`] implementation of [`tinyklv::prelude::Encode`]
-impl tinyklv::prelude::Encode<Vec<u8>> for SecurityClassification {
+impl tinyklv::prelude::Encode<u8, Vec<u8>> for SecurityClassification {
     fn encode(&self) -> Vec<u8> {
         return vec![*self.value()]
     }
@@ -318,7 +318,7 @@ impl tinyklv::prelude::Decode<&[u8]> for CountryCodingMethod {
     }
 }
 /// [`CountryCodingMethod`] implementation of [`tinyklv::prelude::Encode`]
-impl tinyklv::prelude::Encode<Vec<u8>> for CountryCodingMethod {
+impl tinyklv::prelude::Encode<u8, Vec<u8>> for CountryCodingMethod {
     fn encode(&self) -> Vec<u8> {
         return vec![*self.value()]
     }
