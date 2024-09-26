@@ -11,6 +11,10 @@ pub mod ops;
 pub mod primitives;
 mod target;
 pub use target::Misb0903Target;
+mod algorithm;
+// pub use algorithm::Misb0903Algorithm;
+mod ontology;
+// pub use ontology::Misb0903Ontology;
 
 #[cfg(any(
     feature = "misb0903-6",
@@ -253,14 +257,14 @@ pub struct Misb0903 {
     // /// Core Identifier conformant with MISB ST 1204
     // pub miis_id: Option<String>,
 
-    #[cfg(any(
-        feature = "misb0903-6",
-    ))]
-    #[klv(key = 0x65, dec = Misb0903Target::decode_all_vtargets)]
-    /// (Mandatory) VTarget Packs ordered as a Series
-    /// 
-    /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    pub v_target_series: Vec<crate::misb0903::Misb0903Target>
+    // #[cfg(any(
+    //     feature = "misb0903-6",
+    // ))]
+    // #[klv(key = 0x65, dec = Misb0903Target::decode_all_vtargets)]
+    // /// (Mandatory) VTarget Packs ordered as a Series
+    // /// 
+    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    // pub v_target_series: Vec<crate::misb0903::Misb0903Target>,
 
     // #[cfg(any(
     //     feature = "misb0903-6",
@@ -269,7 +273,7 @@ pub struct Misb0903 {
     // /// (Mandatory) Series of one or more Algorithm LS (Local Set)
     // /// 
     // /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    // pub algorithm_series: Vec<Misb0903Algorithm>
+    // pub algorithm_series: Vec<Misb0903Algorithm>,
 
     // #[cfg(any(
     //     feature = "misb0903-6",
@@ -278,5 +282,5 @@ pub struct Misb0903 {
     // /// (Mandatory) Series of one or more Ontology LS (Local Set)
     // /// 
     // /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    // pub target_series: Vec<Misb0601Ontology>
+    // pub target_series: Vec<Misb0601Ontology>,
 }

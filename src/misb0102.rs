@@ -115,9 +115,10 @@ pub struct Misb0102 {
     /// free text.
     pub classification_reason: Option<String>,
 
-    #[klv(key = 0x0A, dyn = true, dec = tinyklv::as_date!(
+    #[klv(key = 0x0A, dyn = false, dec = tinyklv::as_date!(
         tinyklv::dec::binary::to_string_ascii,
         "%Y%m%d",
+        8,
     ))]
     /// (Contextual) The Declassification Date metadata element provides a date when
     /// the classified material may be automatically declassified.
@@ -167,9 +168,10 @@ pub struct Misb0102 {
     /// of MISB ST 0102 referenced.
     pub version: u16,
 
-    #[klv(key = 0x17, dyn = true, dec = tinyklv::as_date!(
+    #[klv(key = 0x17, dyn = false, dec = tinyklv::as_date!(
         tinyklv::dec::binary::to_string_ascii,
         "%Y-%m-%d",
+        10,
     ))]
     /// (Optional) This metadata element provides the effective date (promulgation
     /// date) of the source (FIPS 10-4, ISO 3166, GENC 2.0, or STANAG 1059) used
@@ -180,9 +182,10 @@ pub struct Misb0102 {
     /// See [`Misb0102::country_coding_method`]
     pub country_coding_method_version_date: chrono::NaiveDate,
 
-    #[klv(key = 0x18, dyn = true, dec = tinyklv::as_date!(
+    #[klv(key = 0x18, dyn = false, dec = tinyklv::as_date!(
         tinyklv::dec::binary::to_string_ascii,
         "%Y-%m-%d",
+        10,
     ))]
     /// (Optional) The Object Country Coding Method Version Date metadata element
     /// is the effective date (promulgation date) of the source (FIPS 10-4, ISO 3166,

@@ -67,8 +67,8 @@ impl PixelPosition {
 
     #[inline(always)]
     /// Decodes a pixel number from a stream
-    pub fn decode(input: &mut &[u8], len: usize) -> winnow::PResult<Self> {
-        Ok(PixelPosition::new(tinyklv::binary::dec::be_u32_lengthed(input, len)?))
+    pub fn decode(len: usize) -> impl Fn(&mut &[u8]) -> winnow::PResult<Self> {
+        move |input| Ok(PixelPosition::new(tinyklv::binary::dec::be_u32_lengthed(len)(input)?))
     }
 }
 

@@ -5,15 +5,13 @@ use tinyklv::Klv;
 use tinyklv::prelude::*;
 
 // --------------------------------------------------
-// external
-// --------------------------------------------------
-use thisenum::Const;
-
-// --------------------------------------------------
 // local
 // --------------------------------------------------
 use crate::misb0903::ops;
 use crate::misb0903::primitives::*;
+mod mask;
+mod object;
+pub use object::VObject;
 
 #[cfg(any(
     feature = "misb0903-6",
@@ -480,15 +478,10 @@ pub struct Misb0903Target {
     //     feature = "misb0903-6",
     // ))]
     // #[klv(key = 0x65)]
-    // /// (Assumed Optional) DESCRIPTION
+    // /// (Assumed Optional) Local Set to include a mask for delineating the perimeter
+    // /// of the target
     // /// 
     // /// LONG_DESCRIPTION
-    // /// 
-    // /// Valid values: 
-    // /// 
-    // /// Len:
-    // /// 
-    // /// Units:
     // pub v_mask: (),
 
     #[cfg(not(
@@ -544,39 +537,42 @@ pub struct Misb0903Target {
     // /// LONG_DESCRIPTION
     // pub v_chip_series: (),
 
-    // #[cfg(any(
-    //     feature = "misb0903-6",
-    // ))]
-    // #[klv(key = 0x6B)]
-    // /// (Assumed Optional) DESCRIPTION
-    // /// 
-    // /// LONG_DESCRIPTION
-    // pub v_object_series: (),
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x6B, dec = VObject::repeated)]
+    /// (Mandatory) Series of one or more VObject LS
+    /// 
+    /// The `vObjectSeries` item is a Series (see Figure 18) of one or more VObject LS associated with
+    /// a specific target.
+    /// 
+    /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    pub v_object_series: Vec<VObject>,
 }
-impl Misb0903Target {
-    pub fn decode_all_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
-        todo!()
-    }
+// impl Misb0903Target {
+//     pub fn decode_all_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
+//         todo!()
+//     }
 
-    /// For MISB 0903, the target id is the first item in the VTarget Pack
-    /// and is not preceded by a key.
-    /// 
-    /// Meaning, when the key for the [`Misb0903Target`], specified
-    /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
-    /// input stream, then the length of the entire VTarget Pack is returned.
-    /// Intuitively, each element in the VTarget Pack will be a series of
-    /// keys and values. However, this is not the case for the first value:
-    /// [`Misb0903Target::target_id`], which is not preceded by a key.
-    /// 
-    /// See the standard documentation for more details.
-    pub fn decode_vtarget_item(input: &mut &[u8]) -> winnow::PResult<Self> {
-        // let target_id = tinyklv::codecs::ber::dec::ber_oid::<u128>.parse_next(input).ok();
-        // let mut output = Self::decode.parse_next(input)?;
-        // output.target_id = target_id;
-        // Ok(output)
-        todo!()
-    }
-}
+//     /// For MISB 0903, the target id is the first item in the VTarget Pack
+//     /// and is not preceded by a key.
+//     /// 
+//     /// Meaning, when the key for the [`Misb0903Target`], specified
+//     /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
+//     /// input stream, then the length of the entire VTarget Pack is returned.
+//     /// Intuitively, each element in the VTarget Pack will be a series of
+//     /// keys and values. However, this is not the case for the first value:
+//     /// [`Misb0903Target::target_id`], which is not preceded by a key.
+//     /// 
+//     /// See the standard documentation for more details.
+//     pub fn decode_vtarget_item(input: &mut &[u8]) -> winnow::PResult<Self> {
+//         // let target_id = tinyklv::codecs::ber::dec::ber_oid::<u128>.parse_next(input).ok();
+//         // let mut output = Self::decode.parse_next(input)?;
+//         // output.target_id = target_id;
+//         // Ok(output)
+//         todo!()
+//     }
+// }
 
 // pub struct Misb0903Algorithm {}
 // pub struct Misb0601Ontology {}

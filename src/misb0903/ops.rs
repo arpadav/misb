@@ -8,6 +8,8 @@ use tinyklv::prelude::*;
 // --------------------------------------------------
 use std::sync::LazyLock;
 
+use crate::misb1201::ImapB;
+
 /// 2 byte-precision in range [0, 180]
 /// 
 /// Used for some angles
@@ -82,7 +84,8 @@ pub(crate) static IMAPB_N900_19K_2_F64: LazyLock<crate::misb1201::ImapB<f64>> = 
 
 /// General parser wrapper for [`crate::misb1201::ImapB`]
 pub fn imapb_parser<T: crate::misb1201::ImapFloat + 'static> (
-    imap: &'static LazyLock<crate::misb1201::ImapB<T>>,
+    // imap: &'static LazyLock<crate::misb1201::ImapB<T>>,
+    imap: &'static crate::misb1201::ImapB<T>,
     len: usize,
 ) -> impl Fn(&mut &[u8]) -> winnow::PResult<T> {
     move |input: &mut &[u8]| {
@@ -117,4 +120,19 @@ pub fn to_ll_offset(input: &mut &[u8]) -> winnow::PResult<f64> {
 /// * [`crate::misb0903::Misb0903Target::target_hae`]
 pub fn to_hae(input: &mut &[u8]) -> winnow::PResult<f64> {
     imapb_parser(&IMAPB_N900_19K_2_F64, 2).parse_next(input)
+}
+
+/// A dynamically sized [`crate::misb1201::ImapB`] parser for confidence
+/// values of length `len`, in the range [0, 100]
+pub fn to_confidence(len: usize) -> impl Fn(&mut &[u8]) -> winnow::PResult<f64> {
+    move |input: &mut &[u8]| {
+        let checkpoint = input.checkpoint();
+        let imap = match ImapB::new(0.0_f64, 100.0_f64, len) {
+            Ok(x) => x,
+            Err(e) => return Err(tinyklv::err!().add_context(input, &checkpoint, e.into())),
+        };
+        let value = winnow::token::take(len).parse_next(input)?;
+        let res = imap.from_imap(value).map_err(|e| tinyklv::err!().add_context(input, &checkpoint, e.into()));
+        res
+    }
 }
