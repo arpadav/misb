@@ -38,7 +38,7 @@ pub struct Misb0903Target {
     /// (Mandatory) Mandatory BER-OID encoded target id and first value
     /// in a VTarget Pack
     /// 
-    /// This value does not have a key.
+    /// ***This value does not have a key.***
     /// 
     /// Len: V9
     /// 
@@ -549,30 +549,30 @@ pub struct Misb0903Target {
     /// Is "pseudo optional"; if not present, defaults to an empty vector.
     pub v_object_series: Vec<VObject>,
 }
-// impl Misb0903Target {
-//     pub fn decode_all_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
-//         todo!()
-//     }
+impl Misb0903Target {
+    /// For MISB 0903, the target id is the first item in the VTarget Pack
+    /// and is not preceded by a key.
+    /// 
+    /// Meaning, when the key for the [`Misb0903Target`], specified
+    /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
+    /// input stream, then the length of the entire VTarget Pack is returned.
+    /// Intuitively, each element in the VTarget Pack will be a series of
+    /// keys and values. However, this is not the case for the first value:
+    /// [`Misb0903Target::target_id`], which is not preceded by a key.
+    /// 
+    /// See the standard documentation for more details.
+    pub fn decode_vtarget(input: &mut &[u8]) -> winnow::PResult<Self> {
+        let target_id = tinyklv::codecs::ber::dec::ber_oid::<u128>.parse_next(input).ok();
+        let mut output = Self::decode.parse_next(input)?;
+        output.target_id = target_id;
+        Ok(output)
+    }
 
-//     /// For MISB 0903, the target id is the first item in the VTarget Pack
-//     /// and is not preceded by a key.
-//     /// 
-//     /// Meaning, when the key for the [`Misb0903Target`], specified
-//     /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
-//     /// input stream, then the length of the entire VTarget Pack is returned.
-//     /// Intuitively, each element in the VTarget Pack will be a series of
-//     /// keys and values. However, this is not the case for the first value:
-//     /// [`Misb0903Target::target_id`], which is not preceded by a key.
-//     /// 
-//     /// See the standard documentation for more details.
-//     pub fn decode_vtarget_item(input: &mut &[u8]) -> winnow::PResult<Self> {
-//         // let target_id = tinyklv::codecs::ber::dec::ber_oid::<u128>.parse_next(input).ok();
-//         // let mut output = Self::decode.parse_next(input)?;
-//         // output.target_id = target_id;
-//         // Ok(output)
-//         todo!()
-//     }
-// }
+    /// 
+    pub fn decode_vec_vtargets(input: &mut &[u8]) -> winnow::PResult<Vec<Self>> {
+        winnow::combinator::repeat(0.., Self::decode_vtarget).parse_next(input)
+    }
+}
 
 // pub struct Misb0903Algorithm {}
 // pub struct Misb0601Ontology {}

@@ -45,7 +45,7 @@ impl PixelPosition {
     /// 
     /// This is used internally, once a `frame_width` is provided
     /// in the MISB 0903 stream.
-    pub(crate) fn to_rc(&mut self, width: f32) -> (u32, u32) {
+    pub fn to_rc(&mut self, width: f32) -> (u32, u32) {
         // --------------------------------------------------
         // return self if already set and equal
         // --------------------------------------------------

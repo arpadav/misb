@@ -257,14 +257,14 @@ pub struct Misb0903 {
     // /// Core Identifier conformant with MISB ST 1204
     // pub miis_id: Option<String>,
 
-    // #[cfg(any(
-    //     feature = "misb0903-6",
-    // ))]
-    // #[klv(key = 0x65, dec = Misb0903Target::decode_all_vtargets)]
-    // /// (Mandatory) VTarget Packs ordered as a Series
-    // /// 
-    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    // pub v_target_series: Vec<crate::misb0903::Misb0903Target>,
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x65, dec = Misb0903Target::decode_vec_vtargets)]
+    /// (Mandatory) VTarget Packs ordered as a Series
+    /// 
+    /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    pub v_target_series: Vec<crate::misb0903::Misb0903Target>,
 
     // #[cfg(any(
     //     feature = "misb0903-6",
