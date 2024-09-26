@@ -9,20 +9,28 @@ use tinyklv::prelude::*;
 // --------------------------------------------------
 pub mod ops;
 pub mod primitives;
-mod target;
 pub use target::Misb0903Target;
-mod algorithm;
-// pub use algorithm::Misb0903Algorithm;
+pub use ontology::Misb0903Ontology;
+pub use algorithm::Misb0903Algorithm;
+
+// --------------------------------------------------
+// relative
+// --------------------------------------------------
+mod target;
 mod ontology;
-// pub use ontology::Misb0903Ontology;
+mod algorithm;
 
 #[cfg(any(
     feature = "misb0903-6",
 ))]
 #[derive(Klv, Debug)]
 #[klv(
-    stream = &[u8],
+    // ------------------------------------------------
+    // confirmed Misb0903 VMTI UL
+    //             06 .0E .2B .34 .02 .0B .01 .01 .0E .01 .03 .03 .06 .00 .00 .00
     sentinel = b"\x06\x0E\x2B\x34\x02\x0B\x01\x01\x0E\x01\x03\x03\x06\x00\x00\x00",
+    // ------------------------------------------------
+    stream = &[u8],
     key(enc = tinyklv::codecs::ber::enc::ber_oid,
         dec = tinyklv::codecs::ber::dec::ber_oid::<u64>),
     len(enc = tinyklv::codecs::ber::enc::ber_length,
@@ -44,6 +52,8 @@ pub struct Misb0903 {
     #[klv(key = 0x01, dyn = false, dec = tinyklv::codecs::binary::dec::be_u16)]
     /// (Contextual) Detects errors within a standalone VMTI LS
     /// 
+    /// `checkSum` -> [`Misb0903::checksum`]
+    /// 
     /// The `checkSum` item aids detecting errors in delivery with
     /// standalone-VMTI. Refer to MISB ST 0601 for the checksum algorithm.
     /// Performed over the entire LS, the checksum includes the 16-byte UL
@@ -62,6 +72,8 @@ pub struct Misb0903 {
     /// (Assumed Optional) Microsecond count from Epoch of 1970
     /// See MISP Time System - MISB ST 0603
     /// 
+    /// `precisionTimeStamp` -> [`Misb0903::precision_timestamp`]
+    /// 
     /// Defined in MISB ST 0603, the Precision Time Stamp is the number of
     /// microseconds elapsed since the MISP Time System epoch of midnight (00:00:00),
     /// January 1, 1970, and the microsecond count does NOT include leap seconds.
@@ -77,6 +89,8 @@ pub struct Misb0903 {
     ))]
     #[klv(key = 0x03)]
     /// (Assumed Optional) Name and/or description of the VMTI system
+    /// 
+    /// `vmtiSystemName` -> [`Misb0903::vmti_system_name`]
     /// 
     /// The `vmtiSystemName` item is the name or description of the VMTI system
     /// producing the VMTI targets identified as a string of 32 UTF-8 characters.
@@ -95,6 +109,8 @@ pub struct Misb0903 {
     /// (Assumed Optional) Version number of the VMTI Local Set used to
     /// generate the VMTI metadata.
     /// 
+    /// `vmtiLsVersionNum` -> [`Misb0903::vmti_ls_version`]
+    /// 
     /// The `vmtiLsVersionNum` is the version number of the VMTI LS document
     /// used to generate the VMTI metadata and notifies downstream clients
     /// of the LS version used to encode the VMTI metadata. Values of 1
@@ -111,6 +127,8 @@ pub struct Misb0903 {
     #[klv(key = 0x05)]
     /// (Assumed Optional) Total number of targets in VMTI system's
     /// processing model's target list
+    /// 
+    /// `totalNumTargetsDetected` -> [`Misb0903::total_num_targets_detected`]
     /// 
     /// The `totalNumTargetsDetected` item is the total number of targets in
     /// the VMTI processing model's target list; this value may be different
@@ -130,6 +148,8 @@ pub struct Misb0903 {
     ))]
     #[klv(key = 0x06)]
     /// (Mandatory) Number of targets reported following a culling process
+    /// 
+    /// `numTargetsReported` -> [`Misb0903::num_targets_reported`]
     /// 
     /// The `numTargetsReported` item is the count of a subset of the target list.
     /// Reporting only a subset of the target list improves bandwidth efficiency.
@@ -158,6 +178,8 @@ pub struct Misb0903 {
     #[klv(key = 0x08)]
     /// (Assumed Optional) Width of the Motion Imagery frame in pixels
     /// 
+    /// `frameWidth` -> [`Misb0903::frame_width`]
+    /// 
     /// The `frameWidth` item specifies the width of the
     /// VMTI-MI frame in pixels, which corresponds to the number of pixels
     /// in a row of the image where pixels appear in row-major order. Do not
@@ -173,6 +195,8 @@ pub struct Misb0903 {
     ))]
     #[klv(key = 0x09)]
     /// (Optional) Height of the Motion Imagery frame in pixels
+    /// 
+    /// `frameHeight` -> [`Misb0903::frame_height`]
     /// 
     /// The `frameHeight` item specifies the height of the
     /// VMTI-MI frame in pixels, which corresponds to the number of rows of
@@ -190,6 +214,8 @@ pub struct Misb0903 {
     #[klv(key = 0x0A)]
     /// (Assumed Optional) VMTI source sensor (as string). E.g.,
     /// 'EO Nose', 'EO Zoom (DLTV)'
+    /// 
+    /// `vmtiSourceSensor` -> [`Misb0903::vmti_source_sensor`]
     /// 
     /// The `vmtiSourceSensor` item is a free text identifier for the source of
     /// the VMTI-MI, e.g., 'EO Nose', 'EO Zoom (DLTV)', 'EO Spotter', 'IR Mitsubishi
@@ -211,6 +237,8 @@ pub struct Misb0903 {
     #[klv(key = 0x0B, dec = ops::to_hvfov)]
     /// (Assumed Optional) Horizontal field of view of imaging sensor input
     /// to VMTI process.
+    /// 
+    /// `vmtiHorizontalFov` -> [`Misb0903::vmti_hfov`]
     /// 
     /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
     /// the source input. ST 0903 requires Item 11 in two cases:
@@ -234,6 +262,8 @@ pub struct Misb0903 {
     /// (Assumed Optional) Vertical field of view of imaging sensor input
     /// to VMTI process
     /// 
+    /// `vmtiVerticalFov` -> [`Misb0903::vmti_vfov`]
+    /// 
     /// The `vmtiVerticalFov` item is the vertical field of view (VFOV) of
     /// the source input. This is a required item in two cases:
     /// 
@@ -255,7 +285,7 @@ pub struct Misb0903 {
     // #[klv(key = 0x0D)]
     // /// (Assumed Optional) A Motion Imagery Identification System (MIIS)
     // /// Core Identifier conformant with MISB ST 1204
-    // pub miis_id: Option<String>,
+    // pub miis_id: Option<Misb1204Miis>,
 
     #[cfg(any(
         feature = "misb0903-6",
@@ -264,23 +294,23 @@ pub struct Misb0903 {
     /// (Mandatory) VTarget Packs ordered as a Series
     /// 
     /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    pub v_target_series: Vec<crate::misb0903::Misb0903Target>,
+    pub v_target_series: Vec<Misb0903Target>,
 
-    // #[cfg(any(
-    //     feature = "misb0903-6",
-    // ))]
-    // #[klv(key = 0x66, dec = Misb0903Algorithm::decode)]
-    // /// (Mandatory) Series of one or more Algorithm LS (Local Set)
-    // /// 
-    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    // pub algorithm_series: Vec<Misb0903Algorithm>,
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x66, dec = Misb0903Algorithm::repeated)]
+    /// (Mandatory) Series of one or more Algorithm LS (Local Set)
+    /// 
+    /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    pub algorithm_series: Vec<Misb0903Algorithm>,
 
-    // #[cfg(any(
-    //     feature = "misb0903-6",
-    // ))]
-    // #[klv(key = 0x67)]
-    // /// (Mandatory) Series of one or more Ontology LS (Local Set)
-    // /// 
-    // /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    // pub target_series: Vec<Misb0601Ontology>,
+    #[cfg(any(
+        feature = "misb0903-6",
+    ))]
+    #[klv(key = 0x67, dec = Misb0903Ontology::repeated)]
+    /// (Mandatory) Series of one or more Ontology LS (Local Set)
+    /// 
+    /// Is "pseudo optional"; if not present, defaults to an empty vector.
+    pub target_series: Vec<Misb0903Ontology>,
 }

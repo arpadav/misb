@@ -432,7 +432,7 @@ impl SpecialValue {
         // then the value is a reserved special value
         // --------------------------------------------------
         if (y[0] & 0b1100_0000) == 0b1000_0000
-        && (y[0] & 0b0011_1111 != 0 || y[1..].iter().any(|&byte| byte != 0))
+        && ((y[0] & 0b0011_1111) != 0 || y[1..].iter().any(|&byte| byte != 0))
         {
             return Ok(SpecialValue::ReservedSpecial)
         }
@@ -442,7 +442,7 @@ impl SpecialValue {
         // then the value is a reserved MISB defined value
         // --------------------------------------------------
         if (y[0] & 0b1111_1000) == 0b1110_0000
-        && y[0] & 0b0000_0110 != 0
+        && (y[0] & 0b0000_0110) != 0
         && y[1..] == vec![0u8; y.len() - 1]
         {
             return Ok(SpecialValue::ReservedMisbDefined)

@@ -45,7 +45,7 @@ mod module_name {
             /// representing a vehicle. If the blob closely matches the classifiers criteria for a vehicle the
             /// confidence in the labeling is high (towards 100.0%); alternatively, if the classifier is less sure of
             /// its label the confidence is low (towards 0%). The confidence value is IMAPB(0.0, 100.0, length)
-            /// with the length defined by the tag’s length value. Increasing the length provides more accuracy.
+            /// with the length defined by the tag's length value. Increasing the length provides more accuracy.
             /// The minimum length is 1.
             ///
             /// Len: V3
@@ -194,10 +194,10 @@ mod module_name {
             ///
             /// The confidence item is the measure of "trust" in the feature-classification of this vFeature from
             /// 0.0% to 100.0%. For example, a feature-classifier analyzes an object and "classifies" a subset of
-            /// the object’s pixels as an antenna. If the pixels closely match the classifier’s criteria for an
+            /// the object's pixels as an antenna. If the pixels closely match the classifier's criteria for an
             /// antenna the confidence in the feature-classification is high (towards 100.0%); alternatively, if the
             /// classifier is less sure of its feature-classification the confidence is low (towards 0%). The
-            /// confidence value is IMAPB(0.0, 100.0, length) with the length defined by the item’s length
+            /// confidence value is IMAPB(0.0, 100.0, length) with the length defined by the item's length
             /// value. Increasing the length provides more accuracy. The minimum length is 1.
             ///
             /// Len: V3
@@ -354,7 +354,7 @@ mod module_name {
         /// (Assumed Optional) Position of the top left corner of the target's
         /// bounding box within the Motion Imagery frame as a pixel number
         ///
-        /// VTarget Pack Items 2 and 3 define a target’s pixel bounding box with two
+        /// VTarget Pack Items 2 and 3 define a target's pixel bounding box with two
         /// numbers. The `boundingBoxTopLeft` item is the position of the top left
         /// corner of a target's pixel bounding box using the pixel number
         /// representation
@@ -543,7 +543,7 @@ mod module_name {
         /// (Assumed Optional) Latitude offset for top left corner of target's geospatial bounding box
         ///
         /// The `boundingBoxTopLeftLatOffset` item is the latitude offset for the top left corner of target's
-        /// geospatial bounding box from the parent’s Frame Center Latitude (e.g., MISB ST 0601 - Item 23)
+        /// geospatial bounding box from the parent's Frame Center Latitude (e.g., MISB ST 0601 - Item 23)
         /// based on the WGS84 ellipsoid. The `boundingBoxTopLeftLatOffset` adds to the Frame Center Latitude
         /// to determine the latitude of the top left corner of the target's geospatial bounding box. Both
         /// data items need to be in decimal representation prior to their addition to determine the actual
@@ -560,7 +560,7 @@ mod module_name {
         /// (Assumed Optional) Longitude offset for top left corner of target's geospatial bounding box
         ///
         /// The `boundingBoxTopLeftLonOffset` item is the longitude offset for the top left corner of target's
-        /// geospatial bounding box from the parent’s Frame Center Longitude (e.g., MISB ST 0601 - Item 24)
+        /// geospatial bounding box from the parent's Frame Center Longitude (e.g., MISB ST 0601 - Item 24)
         /// based on the WGS84 ellipsoid. The `boundingBoxTopLeftLonOffset` adds to the Frame Center Longitude
         /// to determine the longitude of the top left corner of the target's geospatial bounding box. Both
         /// data items need to be in decimal representation prior to their addition to determine the actual
@@ -577,7 +577,7 @@ mod module_name {
         /// (Assumed Optional) Latitude offset for bottom right corner of target's geospatial bounding box
         ///
         /// The `boundingBoxBottomRightLatOffset` item is the latitude offset for the bottom right corner of target's
-        /// geospatial bounding box from the parent’s Frame Center Latitude (e.g., MISB ST 0601 - Item 23)
+        /// geospatial bounding box from the parent's Frame Center Latitude (e.g., MISB ST 0601 - Item 23)
         /// based on the WGS84 ellipsoid. The `boundingBoxBottomRightLatOffset` adds to the Frame Center Latitude
         /// to determine the latitude of the bottom right corner of the target's geospatial bounding box. Both
         /// data items need to be in decimal representation prior to their addition to determine the actual
@@ -594,7 +594,7 @@ mod module_name {
         /// (Assumed Optional) Longitude offset for bottom right corner of target's geospatial bounding box
         ///
         /// The `boundingBoxBottomRightLonOffset` item is the longitude offset for the bottom right corner of target's
-        /// geospatial bounding box from the parent’s Frame Center Longitude (e.g., MISB ST 0601 - Item 24)
+        /// geospatial bounding box from the parent's Frame Center Longitude (e.g., MISB ST 0601 - Item 24)
         /// based on the WGS84 ellipsoid. The `boundingBoxBottomRightLonOffset` adds to the Frame Center Longitude
         /// to determine the longitude of the bottom right corner of the target's geospatial bounding box. Both
         /// data items need to be in decimal representation prior to their addition to determine the actual

@@ -38,7 +38,7 @@ pub struct Misb0102 {
     /// the overall security classification of the Motion Imagery Data 
     /// in accordance with U.S. and NATO classification guidance. Values
     /// allowed include: TOP SECRET, SECRET, CONFIDENTIAL, RESTRICTED, and
-    /// UNCLASSIFIED (all caps) followed by a double forward slash “//”.
+    /// UNCLASSIFIED (all caps) followed by a double forward slash "//".
     /// This is a mandatory entry in a Security Metadata set.
     /// 
     /// See [`SecurityClassification`]

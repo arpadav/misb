@@ -11,8 +11,8 @@
 // #[klv(
 //     stream = &[u8],
 //     // sentinel = b"",
-//     key(enc = tinyklv::codecs::ber::enc::u8,
-//         dec = tinyklv::codecs::ber::dec::u8),
+//     key(enc = tinyklv::codecs::binary::enc::u8,
+//         dec = tinyklv::codecs::binary::dec::u8),
 //     len(enc = tinyklv::codecs::ber::enc::ber_length,
 //         dec = tinyklv::codecs::ber::dec::ber_length),
 //     default(ty = u8, dec = tinyklv::codecs::binary::dec::be_u8),

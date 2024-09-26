@@ -20,7 +20,7 @@ use crate::misb0903::ops;
     len(enc = tinyklv::codecs::ber::enc::ber_length,
         dec = tinyklv::codecs::ber::dec::ber_length),
 )]
-pub struct VObject {
+pub struct Misb0903Object {
     #[cfg(not(
         feature = "misb0903-6",
     ))]
@@ -76,11 +76,11 @@ pub struct VObject {
     /// Units: Percent (%)
     pub confidence: f64,
 
-    #[klv(key = 0x05, dec = VFeature::repeated)]
+    #[klv(key = 0x05, dec = Misb0903Feature::repeated)]
     /// (Mandatory) One or more VFeature LS associated with a specific VObject
     /// 
     /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    pub v_feature_series: Vec<VFeature>,
+    pub v_feature_series: Vec<Misb0903Feature>,
 }
 
 #[cfg(any(
@@ -94,7 +94,7 @@ pub struct VObject {
     len(enc = tinyklv::codecs::ber::enc::ber_length,
         dec = tinyklv::codecs::ber::dec::ber_length),
 )]
-pub struct VFeature {
+pub struct Misb0903Feature {
     #[klv(key = 0x01)]
     #[cfg(not(
         feature = "misb0903-6",

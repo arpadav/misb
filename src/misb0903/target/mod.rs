@@ -9,9 +9,13 @@ use tinyklv::prelude::*;
 // --------------------------------------------------
 use crate::misb0903::ops;
 use crate::misb0903::primitives::*;
+
+// --------------------------------------------------
+// relative
+// --------------------------------------------------
 mod mask;
 mod object;
-pub use object::VObject;
+pub use object::Misb0903Object;
 
 #[cfg(any(
     feature = "misb0903-6",
@@ -19,7 +23,6 @@ pub use object::VObject;
 #[derive(Klv, Debug)]
 #[klv(
     stream = &[u8],
-    sentinel = b"\x06\x0E\x2B\x34\x02\x0B\x01\x01\x0E\x01\x03\x03\x06\x00\x00\x00",
     key(enc = tinyklv::codecs::ber::enc::ber_oid,
         dec = tinyklv::codecs::ber::dec::ber_oid::<u64>),
     len(enc = tinyklv::codecs::ber::enc::ber_length,
@@ -27,7 +30,6 @@ pub use object::VObject;
     default(ty = u8, dec = tinyklv::codecs::binary::dec::be_u8),
     default(ty = u16, dyn = true, dec = tinyklv::codecs::binary::dec::be_u16_lengthed),
     default(ty = u32, dyn = true, dec = tinyklv::codecs::binary::dec::be_u32_lengthed),
-    default(ty = u128, dyn = true, dec = tinyklv::codecs::binary::dec::be_u128_lengthed),
     default(ty = String, dyn = true, dec = tinyklv::codecs::binary::dec::to_string_utf8),
     default(ty = PixelPosition, dyn = true, dec = PixelPosition::decode),
 )]
@@ -540,14 +542,14 @@ pub struct Misb0903Target {
     #[cfg(any(
         feature = "misb0903-6",
     ))]
-    #[klv(key = 0x6B, dec = VObject::repeated)]
+    #[klv(key = 0x6B, dec = Misb0903Object::repeated)]
     /// (Mandatory) Series of one or more VObject LS
     /// 
     /// The `vObjectSeries` item is a Series (see Figure 18) of one or more VObject LS associated with
     /// a specific target.
     /// 
     /// Is "pseudo optional"; if not present, defaults to an empty vector.
-    pub v_object_series: Vec<VObject>,
+    pub v_object_series: Vec<Misb0903Object>,
 }
 impl Misb0903Target {
     /// For MISB 0903, the target id is the first item in the VTarget Pack
