@@ -545,8 +545,7 @@ pub struct Misb0903Target {
     #[klv(key = 0x6B, dec = Misb0903Object::repeated)]
     /// (Mandatory) Series of one or more VObject LS
     /// 
-    /// The `vObjectSeries` item is a Series (see Figure 18) of one or more VObject LS associated with
-    /// a specific target.
+    /// The `vObjectSeries` item is a Series (see Figure 18) of one or more VObject LS associated with a specific target.
     /// 
     /// Is "pseudo optional"; if not present, defaults to an empty vector.
     pub v_object_series: Vec<Misb0903Object>,
@@ -555,12 +554,7 @@ impl Misb0903Target {
     /// For MISB 0903, the target id is the first item in the VTarget Pack
     /// and is not preceded by a key.
     /// 
-    /// Meaning, when the key for the [`Misb0903Target`], specified
-    /// by the `key` field in [`Misb0903`] (`0x65`), is located within the
-    /// input stream, then the length of the entire VTarget Pack is returned.
-    /// Intuitively, each element in the VTarget Pack will be a series of
-    /// keys and values. However, this is not the case for the first value:
-    /// [`Misb0903Target::target_id`], which is not preceded by a key.
+    /// Meaning, when the key for the [`Misb0903Target`], specified by the `key` field in [`crate::misb0903::Misb0903`] (`0x65`), is located within the input stream, then the length of the entire VTarget Pack is returned. Intuitively, each element in the VTarget Pack will be a series of keys and values. However, this is not the case for the first value: [`Misb0903Target::target_id`], which is not preceded by a key.
     /// 
     /// See the standard documentation for more details.
     pub fn decode_vtarget(input: &mut &[u8]) -> winnow::PResult<Self> {

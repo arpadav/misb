@@ -16,7 +16,7 @@ pub use algorithm::Misb0903Algorithm;
 // --------------------------------------------------
 // relative
 // --------------------------------------------------
-mod target;
+pub mod target;
 mod ontology;
 mod algorithm;
 
@@ -45,20 +45,16 @@ mod algorithm;
 /// MISB Standard 0903
 /// 
 /// For more information, see [Motion Imagery Standards Board (MISB)](https://nsgreg.nga.mil/misb.jsp)
-pub struct Misb0903 {
+pub struct Misb0903Packet {
     #[cfg(any(
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x01, dyn = false, dec = tinyklv::codecs::binary::dec::be_u16)]
     /// (Contextual) Detects errors within a standalone VMTI LS
     /// 
-    /// `checkSum` -> [`Misb0903::checksum`]
+    /// `checkSum` -> [`Misb0903Packet::checksum`]
     /// 
-    /// The `checkSum` item aids detecting errors in delivery with
-    /// standalone-VMTI. Refer to MISB ST 0601 for the checksum algorithm.
-    /// Performed over the entire LS, the checksum includes the 16-byte UL
-    /// key and 1-byte checksum length. The Value represents the lower
-    /// 16-bits of summation.
+    /// The `checkSum` item aids detecting errors in delivery with standalone-VMTI. Refer to MISB ST 0601 for the checksum algorithm. Performed over the entire LS, the checksum includes the 16-byte UL key and 1-byte checksum length. The Value represents the lower 16-bits of summation.
     /// 
     /// Len: 2
     /// 
@@ -70,14 +66,12 @@ pub struct Misb0903 {
     ))]
     #[klv(key = 0x02, dec = crate::misb0601::ops::to_precision_timestamp)]
     /// (Assumed Optional) Microsecond count from Epoch of 1970
+    /// 
     /// See MISP Time System - MISB ST 0603
     /// 
-    /// `precisionTimeStamp` -> [`Misb0903::precision_timestamp`]
+    /// `precisionTimeStamp` -> [`Misb0903Packet::precision_timestamp`]
     /// 
-    /// Defined in MISB ST 0603, the Precision Time Stamp is the number of
-    /// microseconds elapsed since the MISP Time System epoch of midnight (00:00:00),
-    /// January 1, 1970, and the microsecond count does NOT include leap seconds.
-    /// The VMTI LS `precisionTimeStamp` (Item 2) is equal to VMTI-MI-Timestamp.
+    /// Defined in MISB ST 0603, the Precision Time Stamp is the number of microseconds elapsed since the MISP Time System epoch of midnight (00:00:00), January 1, 1970, and the microsecond count does NOT include leap seconds. The VMTI LS `precisionTimeStamp` (Item 2) is equal to VMTI-MI-Timestamp.
     /// 
     /// Len: 8
     /// 
@@ -90,12 +84,9 @@ pub struct Misb0903 {
     #[klv(key = 0x03)]
     /// (Assumed Optional) Name and/or description of the VMTI system
     /// 
-    /// `vmtiSystemName` -> [`Misb0903::vmti_system_name`]
+    /// `vmtiSystemName` -> [`Misb0903Packet::vmti_system_name`]
     /// 
-    /// The `vmtiSystemName` item is the name or description of the VMTI system
-    /// producing the VMTI targets identified as a string of 32 UTF-8 characters.
-    /// Note that UTF-8 allows up to four bytes per character; thus, this value
-    /// can expand up to 128 bytes maximum. The `vmtiSystemName` is free text.
+    /// The `vmtiSystemName` item is the name or description of the VMTI system producing the VMTI targets identified as a string of 32 UTF-8 characters. Note that UTF-8 allows up to four bytes per character; thus, this value can expand up to 128 bytes maximum. The `vmtiSystemName` is free text.
     /// 
     /// Len: V32
     /// 
@@ -106,15 +97,11 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x04)]
-    /// (Assumed Optional) Version number of the VMTI Local Set used to
-    /// generate the VMTI metadata.
+    /// (Assumed Optional) Version number of the VMTI Local Set used to generate the VMTI metadata.
     /// 
-    /// `vmtiLsVersionNum` -> [`Misb0903::vmti_ls_version`]
+    /// `vmtiLsVersionNum` -> [`Misb0903Packet::vmti_ls_version`]
     /// 
-    /// The `vmtiLsVersionNum` is the version number of the VMTI LS document
-    /// used to generate the VMTI metadata and notifies downstream clients
-    /// of the LS version used to encode the VMTI metadata. Values of 1
-    /// through 65535 correspond to document revisions 1 through 65535.
+    /// The `vmtiLsVersionNum` is the version number of the VMTI LS document used to generate the VMTI metadata and notifies downstream clients of the LS version used to encode the VMTI metadata. Values of 1 through 65535 correspond to document revisions 1 through 65535.
     /// 
     /// Len: V2
     /// 
@@ -125,18 +112,11 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x05)]
-    /// (Assumed Optional) Total number of targets in VMTI system's
-    /// processing model's target list
+    /// (Assumed Optional) Total number of targets in VMTI system's processing model's target list
     /// 
-    /// `totalNumTargetsDetected` -> [`Misb0903::total_num_targets_detected`]
+    /// `totalNumTargetsDetected` -> [`Misb0903Packet::total_num_targets_detected`]
     /// 
-    /// The `totalNumTargetsDetected` item is the total number of targets in
-    /// the VMTI processing model's target list; this value may be different
-    /// than the number of elements in the vTargetSeries. To save bandwidth,
-    /// the VMTI system may only report a subset of the VMTI processing
-    /// model's target list. Section 6 describes the different scenarios for
-    /// generating and reporting target lists. A value of zero represents no
-    /// targets detected in the VMTI processing model's list.
+    /// The `totalNumTargetsDetected` item is the total number of targets in the VMTI processing model's target list; this value may be different than the number of elements in the vTargetSeries. To save bandwidth, the VMTI system may only report a subset of the VMTI processing model's target list. Section 6 describes the different scenarios for generating and reporting target lists. A value of zero represents no targets detected in the VMTI processing model's list.
     /// 
     /// Len: V3
     /// 
@@ -149,10 +129,9 @@ pub struct Misb0903 {
     #[klv(key = 0x06)]
     /// (Mandatory) Number of targets reported following a culling process
     /// 
-    /// `numTargetsReported` -> [`Misb0903::num_targets_reported`]
+    /// `numTargetsReported` -> [`Misb0903Packet::num_targets_reported`]
     /// 
-    /// The `numTargetsReported` item is the count of a subset of the target list.
-    /// Reporting only a subset of the target list improves bandwidth efficiency.
+    /// The `numTargetsReported` item is the count of a subset of the target list. Reporting only a subset of the target list improves bandwidth efficiency.
     /// 
     /// Len: V3
     /// 
@@ -163,8 +142,7 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x07)]
-    /// (-) Item deprecated for MISB 0903.6. To implement, please
-    /// fill out this section with the appropriate feature flag:
+    /// (-) Item deprecated for MISB 0903.6. To implement, please fill out this section with the appropriate feature flag:
     /// 
     /// ```rust no_run ignore
     /// #[cfg(any(feature = "misb0903-5"))] // do not include `"misb0903-6"`
@@ -178,12 +156,9 @@ pub struct Misb0903 {
     #[klv(key = 0x08)]
     /// (Assumed Optional) Width of the Motion Imagery frame in pixels
     /// 
-    /// `frameWidth` -> [`Misb0903::frame_width`]
+    /// `frameWidth` -> [`Misb0903Packet::frame_width`]
     /// 
-    /// The `frameWidth` item specifies the width of the
-    /// VMTI-MI frame in pixels, which corresponds to the number of pixels
-    /// in a row of the image where pixels appear in row-major order. Do not
-    /// use a value of zero.
+    /// The `frameWidth` item specifies the width of the VMTI-MI frame in pixels, which corresponds to the number of pixels in a row of the image where pixels appear in row-major order. Do not use a value of zero.
     /// 
     /// Len: V3
     /// 
@@ -196,12 +171,9 @@ pub struct Misb0903 {
     #[klv(key = 0x09)]
     /// (Optional) Height of the Motion Imagery frame in pixels
     /// 
-    /// `frameHeight` -> [`Misb0903::frame_height`]
+    /// `frameHeight` -> [`Misb0903Packet::frame_height`]
     /// 
-    /// The `frameHeight` item specifies the height of the
-    /// VMTI-MI frame in pixels, which corresponds to the number of rows of
-    /// pixels in the image where pixels appear in row-major order. The
-    /// `frameHeight` is not a required value. Do not use a value of zero.
+    /// The `frameHeight` item specifies the height of the VMTI-MI frame in pixels, which corresponds to the number of rows of pixels in the image where pixels appear in row-major order. The `frameHeight` is not a required value. Do not use a value of zero.
     /// 
     /// Len: V3
     /// 
@@ -212,19 +184,11 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x0A)]
-    /// (Assumed Optional) VMTI source sensor (as string). E.g.,
-    /// 'EO Nose', 'EO Zoom (DLTV)'
+    /// (Assumed Optional) VMTI source sensor (as string). E.g., 'EO Nose', 'EO Zoom (DLTV)'
     /// 
-    /// `vmtiSourceSensor` -> [`Misb0903::vmti_source_sensor`]
+    /// `vmtiSourceSensor` -> [`Misb0903Packet::vmti_source_sensor`]
     /// 
-    /// The `vmtiSourceSensor` item is a free text identifier for the source of
-    /// the VMTI-MI, e.g., 'EO Nose', 'EO Zoom (DLTV)', 'EO Spotter', 'IR Mitsubishi
-    /// PtSi Model 500', 'IR InSb Amber Model TBT', 'LYNX SAR Imagery', 'TESAR
-    /// Imagery', etc. The `vmtiSourceSensor` identifies the source for systems
-    /// where there are multiple sensors. Any change to the VMTI-MI requires updating
-    /// this metadata item. The value is a free text string of 128 UTF-8 characters.
-    /// UTF-8 allows up to four bytes per character, so this value can expand up to
-    /// 512 bytes maximum.
+    /// The `vmtiSourceSensor` item is a free text identifier for the source of the VMTI-MI, e.g., 'EO Nose', 'EO Zoom (DLTV)', 'EO Spotter', 'IR Mitsubishi PtSi Model 500', 'IR InSb Amber Model TBT', 'LYNX SAR Imagery', 'TESAR Imagery', etc. The `vmtiSourceSensor` identifies the source for systems where there are multiple sensors. Any change to the VMTI-MI requires updating this metadata item. The value is a free text string of 128 UTF-8 characters. UTF-8 allows up to four bytes per character, so this value can expand up to 512 bytes maximum.
     /// 
     /// Len: V128
     /// 
@@ -235,13 +199,11 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x0B, dec = ops::to_hvfov)]
-    /// (Assumed Optional) Horizontal field of view of imaging sensor input
-    /// to VMTI process.
+    /// (Assumed Optional) Horizontal field of view of imaging sensor input to VMTI process.
     /// 
-    /// `vmtiHorizontalFov` -> [`Misb0903::vmti_hfov`]
+    /// `vmtiHorizontalFov` -> [`Misb0903Packet::vmti_hfov`]
     /// 
-    /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of
-    /// the source input. ST 0903 requires Item 11 in two cases:
+    /// The `vmtiHorizontalFov` item is the VMTI sensor horizontal field of view (HFOV) of the source input. ST 0903 requires Item 11 in two cases:
     /// 
     /// 1) standalone-VMTI, or
     /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.
@@ -259,13 +221,11 @@ pub struct Misb0903 {
         feature = "misb0903-6",
     ))]
     #[klv(key = 0x0C, dec = ops::to_hvfov)]
-    /// (Assumed Optional) Vertical field of view of imaging sensor input
-    /// to VMTI process
+    /// (Assumed Optional) Vertical field of view of imaging sensor input to VMTI process
     /// 
-    /// `vmtiVerticalFov` -> [`Misb0903::vmti_vfov`]
+    /// `vmtiVerticalFov` -> [`Misb0903Packet::vmti_vfov`]
     /// 
-    /// The `vmtiVerticalFov` item is the vertical field of view (VFOV) of
-    /// the source input. This is a required item in two cases:
+    /// The `vmtiVerticalFov` item is the vertical field of view (VFOV) of the source input. This is a required item in two cases:
     /// 
     /// 1) standalone-VMTI, or
     /// 2) embedded-VMTI and the VMTI-MI is different from the user-MI.

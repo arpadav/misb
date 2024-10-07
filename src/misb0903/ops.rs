@@ -84,7 +84,6 @@ pub(crate) static IMAPB_N900_19K_2_F64: LazyLock<crate::misb1201::ImapB<f64>> = 
 
 /// General parser wrapper for [`crate::misb1201::ImapB`]
 pub fn imapb_parser<T: crate::misb1201::ImapFloat + 'static> (
-    // imap: &'static LazyLock<crate::misb1201::ImapB<T>>,
     imap: &'static crate::misb1201::ImapB<T>,
     len: usize,
 ) -> impl Fn(&mut &[u8]) -> winnow::PResult<T> {
